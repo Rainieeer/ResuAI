@@ -354,6 +354,127 @@
 .loading-hidden { display: none !important; }
 .loading-visible { display: block !important; }
 
+/* Candidates Loading States */
+.candidates-loading-container {
+  min-height: 400px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-primary);
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+}
+
+.candidates-refresh-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.9);
+  -webkit-backdrop-filter: blur(2px);
+  backdrop-filter: blur(2px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 15;
+  border-radius: 8px;
+  pointer-events: auto;
+}
+
+.candidates-refresh-overlay .overlay-content {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 500;
+  color: var(--primary);
+  background: white;
+  padding: 1rem 1.5rem;
+  border-radius: 25px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+  border: 1px solid var(--border-color);
+  animation: fadeInUp 0.3s ease-out;
+}
+
+/* Legacy loading states - kept for compatibility */
+.loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 2rem;
+  text-align: center;
+  min-height: 300px;
+}
+
+.candidates-loading-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.9);
+  -webkit-backdrop-filter: blur(2px);
+  backdrop-filter: blur(2px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  border-radius: 8px;
+  pointer-events: auto;
+}
+
+/* Prevent multiple overlays */
+.candidates-content {
+  position: relative;
+}
+
+.candidates-content .candidates-loading-overlay + .candidates-loading-overlay {
+  display: none !important;
+}
+
+.overlay-spinner {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 500;
+  color: var(--primary);
+  background: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 20px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border: 1px solid var(--border-color);
+}
+
+/* Fade in animation */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Dark mode support */
+[data-theme="dark"] .candidates-loading-overlay,
+[data-theme="dark"] .candidates-refresh-overlay {
+  background: rgba(33, 37, 41, 0.9);
+}
+
+[data-theme="dark"] .overlay-spinner,
+[data-theme="dark"] .candidates-refresh-overlay .overlay-content {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  border-color: var(--border-color);
+}
+
+[data-theme="dark"] .candidates-loading-container {
+  background: var(--bg-secondary);
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .loading-container {

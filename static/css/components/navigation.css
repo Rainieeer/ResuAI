@@ -144,6 +144,7 @@
   box-shadow: var(--shadow-xl);
 }
 
+/* Show floating toggle when sidebar is collapsed on desktop */
 .sidebar.collapsed ~ .main-content .floating-sidebar-toggle {
   display: flex;
 }
@@ -331,8 +332,15 @@
 
 /* Mobile Navigation */
 @media (max-width: 992px) {
+  /* Prevent body scroll when mobile sidebar is open */
+  body.sidebar-open {
+    overflow: hidden;
+  }
+  
   .sidebar {
     transform: translateX(-100%);
+    width: 280px;
+    z-index: 1050;
   }
   
   .sidebar.active {
@@ -348,8 +356,33 @@
     margin-left: 0;
   }
   
+  /* Always show floating toggle on mobile */
   .floating-sidebar-toggle {
-    display: flex;
+    display: flex !important;
+  }
+  
+  /* Hide regular sidebar toggle on mobile (it's inside the sidebar) */
+  .sidebar-toggle {
+    display: none;
+  }
+  
+  /* Mobile overlay */
+  .sidebar-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1040;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+  }
+  
+  .sidebar-overlay.active {
+    opacity: 1;
+    visibility: visible;
   }
 }
 
@@ -360,17 +393,35 @@
   
   .sidebar-header {
     min-height: 65px;
+    padding: 1rem 0.75rem;
+  }
+  
+  .sidebar {
+    width: 260px;
+  }
+  
+  .floating-sidebar-toggle {
+    top: 0.75rem;
+    left: 0.75rem;
+    width: 44px;
+    height: 44px;
   }
   
   .top-bar {
     flex-direction: column;
     align-items: flex-start;
     gap: 1rem;
+    padding: 0.75rem 0;
   }
   
   .top-bar-right {
     width: 100%;
     justify-content: space-between;
+  }
+  
+  .nav-link {
+    padding: 0.75rem 1rem;
+    margin: 0.25rem 0.75rem;
   }
 }
 
@@ -380,11 +431,22 @@
   }
   
   .nav-link {
-    padding: 0.5rem 1rem;
+    padding: 0.75rem 1rem;
     margin: 0.125rem 0.5rem;
   }
   
   .sidebar-footer {
     padding: 0.75rem;
+  }
+  
+  .sidebar {
+    width: 240px;
+  }
+  
+  .floating-sidebar-toggle {
+    width: 40px;
+    height: 40px;
+    top: 0.5rem;
+    left: 0.5rem;
   }
 }

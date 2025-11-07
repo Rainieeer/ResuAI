@@ -3,20 +3,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard - Resume Screening AI</title>
+    <title>Dashboard - University Assessment System</title>
+    
+    <!-- Immediate theme loading to prevent flashing -->
+    <script>
+        (function() {
+            try {
+                const savedTheme = localStorage.getItem('theme') || 'light';
+                document.documentElement.setAttribute('data-theme', savedTheme);
+            } catch (e) {
+                console.warn('Failed to load theme on page load:', e);
+            }
+        })();
+    </script>
     
     <!-- Preload critical resources -->
     <link rel="preload" href="/static/css/base.css" as="style">
     <link rel="preload" href="/static/js/dashboard.js" as="script">
     
     <!-- Meta tags -->
-    <meta name="description" content="Resume screening dashboard - Upload and analyze resumes with AI">
+    <meta name="description" content="University HR Assessment Dashboard - Upload and evaluate Excel PDS files for university positions">
     <meta name="robots" content="noindex, nofollow">
     
-    <!-- Favicon                         <button class="btn btn-primary add-job-btn" id="addJobBtn">
-                            <i class="fas fa-plus"></i>
-                            Add New Job
-                        </button>
+    <!-- Favicon -->
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🤖</text></svg>">
     
     <!-- External CSS -->
@@ -35,23 +44,34 @@
     <link rel="stylesheet" href="/static/css/components/navigation.css">
     <link rel="stylesheet" href="/static/css/components/modal-badge-progress.css">
     <link rel="stylesheet" href="/static/css/components/notifications-lists.css">
-    <link rel="stylesheet" href="/static/css/components/job-components.css">
+    <link rel="stylesheet" href="/static/css/components/position-components.css">
     <link rel="stylesheet" href="/static/css/components/confirmation-dialog.css">
     <link rel="stylesheet" href="/static/css/components/loading.css">
+    <link rel="stylesheet" href="/static/css/components/candidate-profile.css">
+    <link rel="stylesheet" href="/static/css/components/hybrid-scoring.css">
+    <link rel="stylesheet" href="/static/css/components/error-handling.css">
     
     <!-- Page-specific CSS -->
-    <link rel="stylesheet" href="/static/css/pages/dashboard.css">
-    <link rel="stylesheet" href="/static/css/pages/upload.css">
-    <link rel="stylesheet" href="/static/css/pages/candidates.css">
+    <link rel="stylesheet" href="/static/css/pages/dashboard.css?v=20251106230000">
+    <link rel="stylesheet" href="/static/css/pages/upload.css?v=20251106230000">
+    <link rel="stylesheet" href="/static/css/pages/candidates.css?v=20251106230000">
+    <link rel="stylesheet" href="/static/css/pages/settings.css?v=20251106230000">
+    
+    <!-- New System CSS -->
+    <link rel="stylesheet" href="/static/css/notifications.css?v=20251106230000">
+    <link rel="stylesheet" href="/static/css/help-system.css?v=20251106230000">
 </head>
 <body>
     <div class="dashboard-container">
+        <!-- Mobile sidebar overlay -->
+        <div class="sidebar-overlay" id="sidebarOverlay"></div>
+        
         <!-- Sidebar -->
         <aside class="sidebar" id="sidebar">
             <div class="sidebar-header">
                 <a class="brand" href="/">
                     <i class="fas fa-robot"></i>
-                    <span class="brand-text">Resume AI</span>
+                    <span class="brand-text">ResuAI University</span>
                 </a>
                 <button id="sidebarToggle" class="sidebar-toggle">
                     <i class="fas fa-bars"></i>
@@ -61,37 +81,48 @@
             <nav class="sidebar-nav">
                 <div class="nav-section">
                     <span class="nav-section-title">Main</span>
-                    <a href="#dashboard" class="nav-link active" data-section="dashboard">
+                    <a href="/dashboard" class="nav-link" data-section="dashboard">
                         <i class="fas fa-home"></i>
                         <span>Dashboard</span>
                     </a>
-                    <a href="#upload" class="nav-link" data-section="upload">
-                        <i class="fas fa-upload"></i>
-                        <span>Upload Resume</span>
+                    <a href="/upload" class="nav-link" data-section="upload">
+                        <i class="fas fa-file-upload"></i>
+                        <span>Upload Files</span>
                     </a>
-                    <a href="#candidates" class="nav-link" data-section="candidates">
-                        <i class="fas fa-users"></i>
-                        <span>Candidates</span>
+                    <a href="/candidates" class="nav-link" data-section="candidates">
+                        <i class="fas fa-file-alt"></i>
+                        <span>Applications</span>
                     </a>
                 </div>
 
                 <div class="nav-section">
                     <span class="nav-section-title">Management</span>
-                    <a href="#analytics" class="nav-link" data-section="analytics">
+                    <a href="/analytics" class="nav-link" data-section="analytics">
                         <i class="fas fa-chart-line"></i>
-                        <span>Analytics</span>
+                        <span>Assessment Analytics</span>
                     </a>
-                    <a href="#jobs" class="nav-link" data-section="jobs">
+                    <a href="/job-postings" class="nav-link" data-section="job-postings">
                         <i class="fas fa-briefcase"></i>
-                        <span>Job Requirements</span>
+                        <span>Job Postings</span>
                     </a>
+                    <!-- Admin-only User Management Link -->
+                    {% if user_info.is_admin %}
+                    <a href="/user-management" class="nav-link admin-only" data-section="user-management">
+                        <i class="fas fa-users-cog"></i>
+                        <span>User Management</span>
+                    </a>
+                    {% endif %}
                 </div>
 
                 <div class="nav-section">
                     <span class="nav-section-title">Account</span>
-                    <a href="#settings" class="nav-link" data-section="settings">
+                    <a href="/settings" class="nav-link" data-section="settings">
                         <i class="fas fa-cog"></i>
                         <span>Settings</span>
+                    </a>
+                    <a href="/logout" class="nav-link">
+                        <i class="fas fa-sign-out-alt"></i>
+                        <span>Logout</span>
                     </a>
                 </div>
             </nav>
@@ -102,8 +133,8 @@
                 </button>
                 <div class="user-info">
                     <div class="user-details">
-                        <span class="user-name">Mark Johnson</span>
-                        <span class="user-role">HR Manager</span>
+                        <span class="user-name">{{ user_info.email.split('@')[0]|title }}</span>
+                        <span class="user-role">{{ 'Administrator' if user_info.is_admin else 'User' }}</span>
                     </div>
                 </div>
             </div>
@@ -124,7 +155,7 @@
                 <div class="top-bar-right">
                     <div class="search-box">
                         <i class="fas fa-search"></i>
-                        <input type="text" placeholder="Search candidates, jobs...">
+                        <input type="text" placeholder="Search candidates, positions...">
                     </div>
                     <div class="top-bar-actions">
                         <button class="btn-icon" title="Notifications">
@@ -141,44 +172,138 @@
             <!-- Dynamic Content Container -->
             <div class="content-container" id="contentContainer">
                 <!-- Dashboard Section -->
-                <section id="dashboardSection" class="content-section active">
+                <section id="dashboardSection" class="content-section active" data-help="dashboard">
+                    <!-- Welcome Banner -->
+                    <div class="dashboard-welcome">
+                        <div class="welcome-content">
+                            <h1>Welcome back! 👋</h1>
+                            <p>Here's what's happening with your recruitment process today</p>
+                        </div>
+                        <div class="welcome-actions">
+                            <button class="btn btn-light btn-lg" onclick="window.location.href='/upload'">
+                                <i class="fas fa-upload me-2"></i>Upload Excel PDS Files
+                            </button>
+                        </div>
+                    </div>
+
                     <div class="dashboard-grid">
-                        <!-- Stats Cards -->
+                        <!-- Enhanced Stats Cards -->
                         <div class="stats-row">
-                            <div class="stat-card">
-                                <div class="stat-icon">
-                                    <i class="fas fa-file-alt"></i>
+                            <div class="stat-card enhanced" data-stat="total">
+                                <div class="stat-header">
+                                    <div class="stat-icon total">
+                                        <i class="fas fa-file-alt"></i>
+                                    </div>
+                                    <div class="stat-trend positive">
+                                        <i class="fas fa-arrow-up"></i>
+                                        <span>+12%</span>
+                                    </div>
                                 </div>
                                 <div class="stat-content">
                                     <h3 id="totalResumes">0</h3>
-                                    <p>Total Resumes</p>
+                                    <p>Total Candidates</p>
+                                    <small class="stat-subtitle">This month</small>
                                 </div>
                             </div>
-                            <div class="stat-card">
-                                <div class="stat-icon">
-                                    <i class="fas fa-check-circle"></i>
+                            <div class="stat-card enhanced" data-stat="screened">
+                                <div class="stat-header">
+                                    <div class="stat-icon screened">
+                                        <i class="fas fa-check-circle"></i>
+                                    </div>
+                                    <div class="stat-trend positive">
+                                        <i class="fas fa-arrow-up"></i>
+                                        <span>+8%</span>
+                                    </div>
                                 </div>
                                 <div class="stat-content">
                                     <h3 id="screenedResumes">0</h3>
-                                    <p>Screened</p>
+                                    <p>Assessed</p>
+                                    <small class="stat-subtitle">Ready for review</small>
                                 </div>
                             </div>
-                            <div class="stat-card">
-                                <div class="stat-icon">
-                                    <i class="fas fa-star"></i>
+                            <div class="stat-card enhanced" data-stat="shortlisted">
+                                <div class="stat-header">
+                                    <div class="stat-icon shortlisted">
+                                        <i class="fas fa-star"></i>
+                                    </div>
+                                    <div class="stat-trend positive">
+                                        <i class="fas fa-arrow-up"></i>
+                                        <span>+15%</span>
+                                    </div>
                                 </div>
                                 <div class="stat-content">
                                     <h3 id="shortlisted">0</h3>
                                     <p>Shortlisted</p>
+                                    <small class="stat-subtitle">Top candidates</small>
                                 </div>
                             </div>
-                            <div class="stat-card">
-                                <div class="stat-icon">
-                                    <i class="fas fa-clock"></i>
+                           
+                            <div class="stat-card enhanced" data-stat="time">
+                                <div class="stat-header">
+                                    <div class="stat-icon time">
+                                        <i class="fas fa-clock"></i>
+                                    </div>
+                                    <div class="stat-trend negative">
+                                        <i class="fas fa-arrow-down"></i>
+                                        <span>-5%</span>
+                                    </div>
                                 </div>
                                 <div class="stat-content">
                                     <h3 id="avgScreeningTime">0m</h3>
-                                    <p>Avg. Screening Time</p>
+                                    <p>Avg. Assessment Time</p>
+                                    <small class="stat-subtitle">Per application</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Quick Actions Panel -->
+                        <div class="dashboard-row">
+                            <div class="dashboard-col-full">
+                                <div class="card quick-actions-card">
+                                    <div class="card-header">
+                                        <h2><i class="fas fa-bolt me-2"></i>Quick Actions</h2>
+                                        <p class="card-subtitle">Common tasks and shortcuts</p>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="quick-actions-grid">
+                                            <button class="quick-action-btn" onclick="window.location.href='/upload'">
+                                                <div class="action-icon upload">
+                                                    <i class="fas fa-cloud-upload-alt"></i>
+                                                </div>
+                                                <div class="action-content">
+                                                    <h4>Upload PDS Files</h4>
+                                                    <p>Add new applicant documents</p>
+                                                </div>
+                                            </button>
+                                            <button class="quick-action-btn" onclick="window.location.href='/candidates'">
+                                                <div class="action-icon candidates">
+                                                    <i class="fas fa-users"></i>
+                                                </div>
+                                                <div class="action-content">
+                                                    <h4>View Applications</h4>
+                                                    <p>Review and assess candidates</p>
+                                                </div>
+                                            </button>
+                                            <button class="quick-action-btn" onclick="window.location.href='/job-postings'">
+                                                <div class="action-icon jobs">
+                                                    <i class="fas fa-university"></i>
+                                                </div>
+                                                <div class="action-content">
+                                                    <h4>Manage Positions</h4>
+                                                    <p>Edit university position requirements</p>
+                                                </div>
+                                            </button>
+                                            <button class="quick-action-btn" onclick="window.location.href='/analytics'">
+                                                <div class="action-icon analytics">
+                                                    <i class="fas fa-chart-line"></i>
+                                                </div>
+                                                <div class="action-content">
+                                                    <h4>Assessment Analytics</h4>
+                                                    <p>Review assessment metrics</p>
+                                                </div>
+                                            </button>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -186,10 +311,10 @@
                         <!-- Recent Activity & Top Candidates -->
                         <div class="dashboard-row">
                             <div class="dashboard-col">
-                                <div class="card">
+                                <div class="card enhanced-card">
                                     <div class="card-header">
-                                        <h2>Recent Activity</h2>
-                                        <button class="btn-text">View All</button>
+                                        <h2><i class="fas fa-history me-2"></i>Recent Activity</h2>
+                                        <button class="btn-text" onclick="window.location.href='/candidates'">View All</button>
                                     </div>
                                     <div class="card-body">
                                         <div class="activity-list" id="activityList">
@@ -199,10 +324,10 @@
                                 </div>
                             </div>
                             <div class="dashboard-col">
-                                <div class="card">
+                                <div class="card enhanced-card">
                                     <div class="card-header">
-                                        <h2>Top Candidates</h2>
-                                        <button class="btn-text">View All</button>
+                                        <h2><i class="fas fa-trophy me-2"></i>Top Candidates</h2>
+                                        <button class="btn-text" onclick="window.location.href='/candidates'">View All</button>
                                     </div>
                                     <div class="card-body">
                                         <div class="candidates-list" id="topCandidates">
@@ -213,16 +338,136 @@
                             </div>
                         </div>
 
-                        <!-- Job Categories Overview -->
+                        <!-- Performance Overview & University Position Types -->
                         <div class="dashboard-row">
-                            <div class="card full-width">
-                                <div class="card-header">
-                                    <h2>Job Categories Overview</h2>
-                                    <button class="btn-text">Manage Categories</button>
+                            <div class="dashboard-col">
+                                <div class="card enhanced-card">
+                                    <div class="card-header">
+                                        <h2><i class="fas fa-chart-pie me-2"></i>Performance Overview</h2>
+                                        <div class="header-actions">
+                                            <select class="form-select form-select-sm" id="performancePeriod">
+                                                <option value="7">Last 7 days</option>
+                                                <option value="30" selected>Last 30 days</option>
+                                                <option value="90">Last 3 months</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="performance-metrics">
+                                            <div class="metric-item">
+                                                <div class="metric-icon success">
+                                                    <i class="fas fa-check-circle"></i>
+                                                </div>
+                                                <div class="metric-content">
+                                                    <h4 id="successRate">85%</h4>
+                                                    <p>Success Rate</p>
+                                                </div>
+                                            </div>
+                                            <div class="metric-item">
+                                                <div class="metric-icon processing">
+                                                    <i class="fas fa-cogs"></i>
+                                                </div>
+                                                <div class="metric-content">
+                                                    <h4 id="processingSpeed">2.3s</h4>
+                                                    <p>Avg Processing</p>
+                                                </div>
+                                            </div>
+                                            <div class="metric-item">
+                                                <div class="metric-icon quality">
+                                                    <i class="fas fa-medal"></i>
+                                                </div>
+                                                <div class="metric-content">
+                                                    <h4 id="qualityScore">92%</h4>
+                                                    <p>Quality Score</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="performance-chart" id="performanceChart">
+                                            <div class="chart-placeholder">
+                                                <i class="fas fa-chart-area"></i>
+                                                <p>Performance trends will appear here</p>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="card-body">
-                                    <div class="job-categories-grid" id="jobCategoriesGrid">
-                                        <!-- Job category cards will be dynamically added here -->
+                            </div>
+                            <div class="dashboard-col">
+                                <div class="card enhanced-card">
+                                    <div class="card-header">
+                                        <h2><i class="fas fa-university me-2"></i>University Position Types</h2>
+                                        <button class="btn-text" onclick="window.location.href='/job-postings'">Manage Position Types</button>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="position-types-overview" id="positionTypesGrid">
+                                            <!-- Position type cards will be dynamically added here -->
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- System Status & Recent Files -->
+                        <div class="dashboard-row">
+                            <div class="dashboard-col">
+                                <div class="card enhanced-card">
+                                    <div class="card-header">
+                                        <h2><i class="fas fa-heartbeat me-2"></i>System Status</h2>
+                                        <div class="status-indicator online">
+                                            <span class="status-dot"></span>
+                                            All Systems Operational
+                                        </div>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="system-health">
+                                            <div class="health-item">
+                                                <span class="health-label">AI Processing</span>
+                                                <div class="health-status">
+                                                    <div class="health-indicator online"></div>
+                                                    <span class="health-value">Online</span>
+                                                </div>
+                                            </div>
+                                            <div class="health-item">
+                                                <span class="health-label">Database</span>
+                                                <div class="health-status">
+                                                    <div class="health-indicator online"></div>
+                                                    <span class="health-value">Connected</span>
+                                                </div>
+                                            </div>
+                                            <div class="health-item">
+                                                <span class="health-label">Storage</span>
+                                                <div class="health-status">
+                                                    <div class="health-indicator online"></div>
+                                                    <span class="health-value">Available</span>
+                                                </div>
+                                            </div>
+                                            <div class="health-item">
+                                                <span class="health-label">API Response</span>
+                                                <div class="health-status">
+                                                    <div class="health-indicator online"></div>
+                                                    <span class="health-value">< 200ms</span>
+                                                </div>
+                                            </div>
+                                            <div class="health-item">
+                                                <span class="health-label">PDS Processing</span>
+                                                <div class="health-status">
+                                                    <div class="health-indicator online" id="pdsProcessingStatus"></div>
+                                                    <span class="health-value" id="pdsProcessingValue">Ready</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="dashboard-col">
+                                <div class="card enhanced-card">
+                                    <div class="card-header">
+                                        <h2><i class="fas fa-clock me-2"></i>Recent Files</h2>
+                                        <button class="btn-text" onclick="window.location.href='/upload'">Upload More</button>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="recent-files" id="recentFiles">
+                                            <!-- Recent files will be populated here -->
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -230,114 +475,276 @@
                     </div>
                 </section>
 
-                <!-- Upload Resume Section -->
-                <section id="uploadSection" class="content-section">
-                    <div class="section-header">
-                        <h2><i class="fas fa-upload me-2"></i>Upload Resumes</h2>
-                        <p class="section-description">Upload and analyze resumes against job requirements with AI-powered screening</p>
-                    </div>
-
+                <!-- Upload PDS Section -->
+                <section id="uploadSection" class="content-section" data-section="upload" data-help="upload-pds">
                     <div class="upload-workflow">
-                        <!-- Step 1: Job Selection -->
-                        <div class="upload-step animate-fade-in-up" id="jobSelectionStep">
+                        <!-- Step 1: Position Selection -->
+                        <div class="upload-step animate-fade-in-up" id="positionSelectionStep">
                             <div class="step-header">
                                 <div class="step-number">
                                     <span class="step-count">1</span>
                                 </div>
                                 <div class="step-info">
-                                    <h3>Select Target Job</h3>
-                                    <p>Choose the job position to screen resumes against</p>
+                                    <h3>Select Target Position</h3>
+                                    <p class="step-description">Choose the university position to assess candidates against</p>
                                 </div>
                             </div>
                             
-                            <div class="job-selection-container">
-                                <div class="job-categories-grid" id="jobCategoriesUpload">
-                                    <!-- Job categories will be dynamically loaded here -->
+                            <div class="position-selection-container">
+                                <div class="position-types-grid" id="positionTypesUpload">
+                                    <!-- Position types will be dynamically loaded here -->
+                                </div>
+                                
+                                <!-- Job Postings Container for new system -->
+                                <div id="jobPostingsContainer" class="job-postings-container">
+                                    <!-- Job postings will be loaded here by UploadModule -->
                                 </div>
                             </div>
 
-                            <!-- Selected Job Preview -->
-                            <div class="selected-job-preview animate-fade-in-up" id="selectedJobDetails" style="display: none;">
+                            <!-- Selected Position Preview -->
+                            <div class="selected-position-preview animate-fade-in-up" id="selectedPositionDetails" style="display: none;">
                                 <div class="preview-card">
                                     <div class="preview-header">
-                                        <h4><i class="fas fa-check-circle text-success me-2"></i>Selected Job</h4>
-                                        <button class="btn btn-outline-secondary btn-sm" onclick="clearJobSelection()">
+                                        <div class="preview-title">
+                                            <i class="fas fa-check-circle text-success me-2"></i>
+                                            <h4>Selected Position</h4>
+                                        </div>
+                                        <button class="btn btn-outline-secondary btn-sm" onclick="clearPositionSelection()">
                                             <i class="fas fa-times"></i> Change
                                         </button>
                                     </div>
                                     <div class="preview-content">
-                                        <div class="job-title"></div>
-                                        <div class="job-description"></div>
-                                        <div class="required-skills"></div>
+                                        <div class="position-details">
+                                            <div class="position-title"></div>
+                                            <div class="position-description"></div>
+                                            <div class="required-skills"></div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Step 2: Resume Upload -->
+                        <!-- Step 2: Document Upload -->
                         <div class="upload-step" id="resumeUploadStep">
                             <div class="step-header">
                                 <div class="step-number">
                                     <span class="step-count">2</span>
                                 </div>
                                 <div class="step-info">
-                                    <h3>Upload Resumes</h3>
-                                    <p>Drag and drop or browse to select resume files</p>
+                                    <h3>Upload PDS Excel Files</h3>
+                                    <p class="step-description">Upload digital Personal Data Sheets for AI-powered assessment</p>
                                 </div>
                             </div>
 
                             <div class="upload-container">
-                                <div class="upload-area" id="uploadArea">
-                                    <div class="upload-instructions" id="uploadInstructions">
-                                        <div class="instruction-icon">
-                                            <i class="fas fa-arrow-up"></i>
+                                <!-- Document Type Banner -->
+                                <div class="document-type-banner">
+                                    <div class="banner-content">
+                                        <div class="banner-icon">
+                                            <i class="fas fa-file-excel"></i>
                                         </div>
-                                        <h4>Please select a job first</h4>
-                                        <p>Choose a target job position to enable resume upload</p>
+                                        <div class="banner-info">
+                                            <h5>Excel Files Only</h5>
+                                            <p>Upload Excel files (.xlsx, .xls) containing Personal Data Sheets</p>
+                                        </div>
+                                        <div class="banner-features">
+                                            <div class="feature-item">
+                                                <i class="fas fa-lightning-bolt text-warning"></i>
+                                                <span>Fast Processing</span>
+                                            </div>
+                                            <div class="feature-item">
+                                                <i class="fas fa-robot text-primary"></i>
+                                                <span>AI Assessment</span>
+                                            </div>
+                                            <div class="feature-item">
+                                                <i class="fas fa-shield-check text-success"></i>
+                                                <span>High Accuracy</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Upload Area -->
+                                <div class="enhanced-upload-area">
+                                    <!-- Initial Instructions -->
+                                    <div class="upload-instructions" id="uploadInstructions">
+                                        <div class="instruction-content">
+                                            <div class="instruction-icon">
+                                                <i class="fas fa-arrow-up"></i>
+                                            </div>
+                                            <h4>Please select a position first</h4>
+                                            <p>Choose a target university position to enable PDS upload</p>
+                                        </div>
                                     </div>
                                     
-                                    <div class="upload-zone" id="uploadZone" style="display: none; cursor: pointer;" onclick="triggerFileUpload()">
-                                        <div class="upload-content">
-                                            <div class="upload-icon">
-                                                <i class="fas fa-cloud-upload-alt"></i>
+                                    <!-- Selected Position Info -->
+                                    <div id="selectedPositionInfo" style="display: none;">
+                                        <div class="selected-position-card">
+                                            <div class="position-header">
+                                                <div class="position-info">
+                                                    <h5 class="position-title"></h5>
+                                                    <span class="position-badge">
+                                                        <i class="fas fa-target"></i> Target Position
+                                                    </span>
+                                                </div>
                                             </div>
-                                            <h4>Drop resumes here</h4>
-                                            <p>or <span class="browse-link" onclick="triggerFileUpload()" style="cursor: pointer; color: #007bff; text-decoration: underline;">click to browse</span></p>
-                                            <div class="upload-info">
-                                                <span class="supported-formats">
-                                                    <i class="fas fa-file-pdf text-danger"></i>
-                                                    <i class="fas fa-file-word text-primary"></i>
-                                                    <i class="fas fa-file-alt text-secondary"></i>
-                                                    PDF, DOCX, TXT (Max 16MB each)
-                                                </span>
+                                            <div class="job-requirements-preview">
+                                                <!-- Job requirements will be loaded here -->
                                             </div>
                                         </div>
-                                        <input type="file" id="resumeUpload" multiple accept=".pdf,.docx,.txt" hidden>
+                                    </div>
+                                    
+                                    <!-- Main Upload Zone -->
+                                    <div class="upload-zone" id="regularUploadZone" style="display: none;">
+                                        <div class="upload-zone-content">
+                                            <div class="upload-visual">
+                                                <div class="upload-icon-container">
+                                                    <i class="fas fa-cloud-upload-alt"></i>
+                                                    <div class="upload-animation"></div>
+                                                </div>
+                                            </div>
+                                            <div class="upload-text">
+                                                <h4 class="upload-title">Drop your Excel PDS files here</h4>
+                                                <p class="upload-subtitle">
+                                                    or <span class="browse-link">click to browse files</span>
+                                                </p>
+                                            </div>
+                                            <div class="upload-specs">
+                                                <div class="supported-formats">
+                                                    <div class="format-item">
+                                                        <i class="fas fa-file-excel"></i>
+                                                        <span>XLSX</span>
+                                                    </div>
+                                                    <div class="format-item">
+                                                        <i class="fas fa-file-excel"></i>
+                                                        <span>XLS</span>
+                                                    </div>
+                                                </div>
+                                                <div class="file-limits">
+                                                    <span class="limit-item">
+                                                        <i class="fas fa-weight"></i>
+                                                        Max 16MB per file
+                                                    </span>
+                                                    <span class="limit-item">
+                                                        <i class="fas fa-layer-group"></i>
+                                                        Multiple files supported
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <input type="file" id="regularFileUpload" multiple accept=".xlsx,.xls" style="display: none;">
+                                        <input type="file" id="bulkFileUpload" multiple accept=".xlsx,.xls" style="display: none;">
+
                                     </div>
 
-                                    <!-- File Preview -->
-                                    <div id="uploadPreview" class="upload-preview">
+                                    <!-- File Preview Area -->
+                                    <div id="regularUploadPreview" class="upload-preview">
                                         <!-- Files will appear here -->
+                                    </div>
+                                    
+                                    <!-- Upload Preview Container for new system -->
+                                    <div id="uploadPreviewContainer" class="upload-preview-container" style="display: none;">
+                                        <!-- Uploaded files will appear here -->
+                                    </div>
+                                    
+                                    <!-- Analysis Controls -->
+                                    <div id="analysisControls" class="analysis-controls" style="display: none;">
+                                        <div class="analysis-section">
+                                            <div class="analysis-header">
+                                                <div class="analysis-info">
+                                                    <h5><i class="fas fa-brain me-2"></i>AI Analysis Ready</h5>
+                                                    <p class="analysis-description">
+                                                        Our AI will assess the uploaded Excel files against the selected position requirements
+                                                    </p>
+                                                </div>
+                                                <div class="analysis-stats">
+                                                    <span class="stat-badge">
+                                                        <i class="fas fa-file-excel me-1"></i>
+                                                        <span id="analysisFileCount">0</span> files
+                                                    </span>
+                                                    <span class="stat-badge">
+                                                        <i class="fas fa-target me-1"></i>
+                                                        Position-based scoring
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            <div class="analysis-actions">
+                                                <button id="startAnalysisBtn" class="btn btn-primary btn-lg analysis-btn">
+                                                    <span class="btn-content">
+                                                        <i class="fas fa-rocket me-2"></i>
+                                                        <span class="btn-text">Start AI Analysis</span>
+                                                    </span>
+                                                    <span class="btn-loader" style="display: none;">
+                                                        <div class="spinner-container">
+                                                            <div class="spinner"></div>
+                                                        </div>
+                                                        <span class="loading-text">Analyzing...</span>
+                                                    </span>
+                                                </button>
+                                                <div class="analysis-progress" id="analysisProgress" style="display: none;">
+                                                    <div class="progress-bar">
+                                                        <div class="progress-fill" id="progressFill"></div>
+                                                    </div>
+                                                    <div class="progress-text">
+                                                        <span id="progressStatus">Initializing analysis...</span>
+                                                        <div class="progress-indicators">
+                                                            <span id="progressPercent">0%</span>
+                                                            <span id="progressTime">0:00</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Analysis Results -->
+                                    <div id="analysisResults" class="analysis-results" style="display: none;">
+                                        <!-- Analysis results will appear here -->
+                                    </div>
+                                    
+                                    <!-- Demo Button for Testing Enhanced Results -->
+                                    <div class="demo-controls" style="margin-top: 1rem; text-align: center;">
+                                        <button class="btn btn-outline-info btn-sm" onclick="UploadModule.previewEnhancedResults()" title="Preview the enhanced analysis results interface">
+                                            <i class="fas fa-eye me-2"></i>Preview Enhanced Results
+                                        </button>
+                                        <small class="d-block mt-2 text-muted">Click to see the enhanced analysis results interface with sample data</small>
                                     </div>
                                 </div>
 
                                 <!-- Upload Actions -->
                                 <div class="upload-actions" id="uploadActions" style="display: none;">
-                                    <div class="action-buttons">
-                                        <button id="clearFilesBtn" class="btn btn-outline-secondary">
-                                            <i class="fas fa-trash me-2"></i>Clear All
-                                        </button>
-                                        <button id="startUploadBtn" class="btn btn-primary btn-lg" disabled>
-                                            <i class="fas fa-rocket me-2"></i>
-                                            <span>Start Analysis</span>
-                                            <div class="btn-loader" style="display: none;">
-                                                <i class="fas fa-spinner fa-spin"></i>
+                                    <div class="actions-container">
+                                        <div class="upload-stats">
+                                            <div class="stats-group">
+                                                <div class="stat-item">
+                                                    <i class="fas fa-files"></i>
+                                                    <span id="fileCount">0 files selected</span>
+                                                </div>
+                                                <div class="stat-item">
+                                                    <i class="fas fa-database"></i>
+                                                    <span id="totalSize">0 MB</span>
+                                                </div>
+                                                <div class="stat-item">
+                                                    <i class="fas fa-microchip"></i>
+                                                    <span class="processing-mode">AI Processing Ready</span>
+                                                </div>
                                             </div>
-                                        </button>
-                                    </div>
-                                    <div class="upload-stats">
-                                        <span id="fileCount">0 files selected</span>
-                                        <span id="totalSize">0 MB</span>
+                                        </div>
+                                        <div class="action-buttons">
+                                            <button id="clearFilesBtn" class="btn btn-outline-secondary">
+                                                <i class="fas fa-trash-alt me-2"></i>Clear All
+                                            </button>
+                                            <button id="startUploadBtn" class="btn btn-primary btn-lg" disabled>
+                                                <span class="btn-content">
+                                                    <i class="fas fa-brain me-2"></i>
+                                                    <span class="btn-text">Analyze Documents</span>
+                                                </span>
+                                                <div class="btn-loader" style="display: none;">
+                                                    <i class="fas fa-spinner fa-spin me-2"></i>
+                                                    <span>Processing...</span>
+                                                </div>
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -350,8 +757,8 @@
                                     <span class="step-count">3</span>
                                 </div>
                                 <div class="step-info">
-                                    <h3>Analysis Results</h3>
-                                    <p>Review and manage the screening results</p>
+                                    <h3>Assessment Results</h3>
+                                    <p>Review candidate assessment scores and rankings</p>
                                 </div>
                             </div>
 
@@ -364,11 +771,11 @@
                                         </div>
                                         <div class="summary-stat">
                                             <span class="stat-number" id="avgScore">0%</span>
-                                            <span class="stat-label">Avg Score</span>
+                                            <span class="stat-label">Avg Assessment</span>
                                         </div>
                                         <div class="summary-stat">
                                             <span class="stat-number" id="topCandidates">0</span>
-                                            <span class="stat-label">Top Matches</span>
+                                            <span class="stat-label">Qualified</span>
                                         </div>
                                     </div>
                                     <div class="results-actions">
@@ -387,24 +794,211 @@
                             </div>
                         </div>
                     </div>
+                    
+                    <!-- Enhanced Upload UI JavaScript -->
+                    <script>
+                        // Enhanced position selection functionality
+                        function clearPositionSelection() {
+                            // Clear selected position
+                            if (typeof UploadModule !== 'undefined') {
+                                UploadModule.selectedJobId = null;
+                            }
+                            
+                            // Hide selected position details
+                            const selectedDetails = document.getElementById('selectedPositionDetails');
+                            if (selectedDetails) {
+                                selectedDetails.style.display = 'none';
+                            }
+                            
+                            // Hide upload zone and show instructions
+                            const uploadInstructions = document.getElementById('uploadInstructions');
+                            const uploadZone = document.getElementById('regularUploadZone');
+                            const selectedInfo = document.getElementById('selectedPositionInfo');
+                            
+                            if (uploadInstructions) uploadInstructions.style.display = 'block';
+                            if (uploadZone) uploadZone.style.display = 'none';
+                            if (selectedInfo) selectedInfo.style.display = 'none';
+                            
+                            // Deactivate upload step
+                            const uploadStep = document.getElementById('resumeUploadStep');
+                            if (uploadStep) {
+                                uploadStep.classList.remove('active');
+                            }
+                            
+                            // Clear any selected files
+                            if (typeof UploadModule !== 'undefined') {
+                                UploadModule.clearFiles();
+                            }
+                        }
+                        
+
+                        // Enhanced job selection handling
+                        function selectJobForUpload(jobId, jobData) {
+                            console.log('🎯 selectJobForUpload called:', jobId, jobData);
+                            
+                            // Store selected job in UploadModule
+                            if (window.uploadModuleInstance) {
+                                window.uploadModuleInstance.setSelectedJob(jobId);
+                                console.log('✅ Set UploadModule job to:', jobId);
+                            } else if (typeof UploadModule !== 'undefined') {
+                                UploadModule.setSelectedJob(jobId);
+                                console.log('✅ Set UploadModule job to:', jobId);
+                            } else {
+                                console.warn('⚠️ UploadModule not found');
+                            }
+                            
+                            // Show selected position preview
+                            const selectedDetails = document.getElementById('selectedPositionDetails');
+                            if (selectedDetails) {
+                                const titleElement = selectedDetails.querySelector('.position-title');
+                                const descElement = selectedDetails.querySelector('.position-description');
+                                const skillsElement = selectedDetails.querySelector('.required-skills');
+                                
+                                if (titleElement) titleElement.textContent = jobData.title || 'Selected Position';
+                                if (descElement) descElement.textContent = jobData.description || '';
+                                if (skillsElement && jobData.skills) {
+                                    skillsElement.innerHTML = jobData.skills.map(skill => 
+                                        `<span class="skill-tag">${skill}</span>`
+                                    ).join('');
+                                }
+                                
+                                selectedDetails.style.display = 'block';
+                            }
+                            
+                            // Update upload section
+                            const uploadInstructions = document.getElementById('uploadInstructions');
+                            const uploadZone = document.getElementById('regularUploadZone');
+                            const selectedInfo = document.getElementById('selectedPositionInfo');
+                            
+                            console.log('📍 Upload elements:', {
+                                uploadInstructions: uploadInstructions,
+                                uploadZone: uploadZone,
+                                selectedInfo: selectedInfo
+                            });
+                            
+                            if (uploadInstructions) {
+                                uploadInstructions.style.display = 'none';
+                                console.log('✅ Hidden upload instructions');
+                            }
+                            if (uploadZone) {
+                                uploadZone.style.display = 'block';
+                                console.log('✅ Shown upload zone');
+                            }
+                            if (selectedInfo) {
+                                const positionTitle = selectedInfo.querySelector('.position-title');
+                                if (positionTitle) positionTitle.textContent = jobData.title || 'Selected Position';
+                                selectedInfo.style.display = 'block';
+                                console.log('✅ Shown selected position info');
+                            }
+                            
+                            // Activate upload step
+                            const uploadStep = document.getElementById('resumeUploadStep');
+                            if (uploadStep) {
+                                uploadStep.classList.add('active');
+                                console.log('✅ Activated upload step');
+                            }
+                        }
+                        
+                        // Initialize upload UI when DOM is ready
+                        document.addEventListener('DOMContentLoaded', function() {
+                            // Activate first step by default
+                            const firstStep = document.getElementById('positionSelectionStep');
+                            if (firstStep) {
+                                firstStep.classList.add('active');
+                            }
+
+                        });
+                    </script>
                 </section>
 
+
                 <!-- Candidates Section -->
-                <section id="candidatesSection" class="content-section">
-                    <div class="section-header">
-                        <h2>Candidates by Job Categories</h2>
-                        <div class="section-actions">
-                            <button class="btn btn-outline-primary" id="refreshCandidates">
-                                <i class="fas fa-sync me-2"></i>Refresh
-                            </button>
-                            <button class="btn btn-outline-primary" id="exportCandidates">
-                                <i class="fas fa-download me-2"></i>Export
-                            </button>
+                <section id="candidatesSection" class="content-section" data-help="candidates">
+                    <div class="section-actions mb-3">
+                        <button class="btn btn-outline-primary" id="refreshCandidates">
+                            <i class="fas fa-sync me-2"></i>Refresh
+                        </button>
+                        <button class="btn btn-outline-primary" id="exportCandidates">
+                            <i class="fas fa-download me-2"></i>Export
+                        </button>
+                    </div>
+
+                    <!-- Candidate Statistics -->
+                    <div class="candidate-stats-container" id="candidateStats">
+                        <!-- Statistics will be populated dynamically -->
+                    </div>
+
+                    <!-- Filters and Search -->
+                    <div class="candidates-filters">
+                        <div class="row g-3 align-items-center">
+                            <div class="col-md-4">
+                                <div class="search-container">
+                                    <i class="fas fa-search search-icon"></i>
+                                    <input type="text" class="form-control" id="candidateSearch" 
+                                           placeholder="Search candidates, skills, or categories...">
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <select class="form-select" id="candidateSort">
+                                    <option value="score-desc">Score ↓</option>
+                                    <option value="score-asc">Score ↑</option>
+                                    <option value="name-asc">Name A-Z</option>
+                                    <option value="name-desc">Name Z-A</option>
+                                    <option value="status-asc">Status A-Z</option>
+                                    <option value="status-desc">Status Z-A</option>
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <select class="form-select" id="candidateFilter">
+                                    <option value="all">All Status</option>
+                                    <option value="pending">Pending</option>
+                                    <option value="shortlisted">Shortlisted</option>
+                                    <option value="rejected">Rejected</option>
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <button class="btn btn-outline-secondary w-100" id="clearFilters">
+                                    <i class="fas fa-times me-2"></i>Clear
+                                </button>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="btn-group w-100" role="group">
+                                    <input type="radio" class="btn-check" name="viewMode" id="tableView" autocomplete="off" checked>
+                                    <label class="btn btn-outline-primary" for="tableView" title="Table View">
+                                        <i class="fas fa-table"></i>
+                                    </label>
+                                    <input type="radio" class="btn-check" name="viewMode" id="cardView" autocomplete="off">
+                                    <label class="btn btn-outline-primary" for="cardView" title="Card View">
+                                        <i class="fas fa-th-large"></i>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Bulk Actions Container -->
+                    <div class="bulk-actions-container" id="bulkActionsContainer" style="display: none;">
+                        <div class="alert alert-info d-flex align-items-center justify-content-between">
+                            <div>
+                                <i class="fas fa-info-circle me-2"></i>
+                                <span class="selected-count">0</span> candidates selected
+                            </div>
+                            <div class="bulk-actions">
+                                <button class="btn btn-sm btn-outline-success me-2" onclick="CandidatesModule.bulkUpdateStatus('shortlisted')">
+                                    <i class="fas fa-star me-1"></i>Shortlist
+                                </button>
+                                <button class="btn btn-sm btn-outline-warning me-2" onclick="CandidatesModule.bulkUpdateStatus('rejected')">
+                                    <i class="fas fa-times me-1"></i>Reject
+                                </button>
+                                <button class="btn btn-sm btn-outline-danger" onclick="CandidatesModule.bulkRemoveCandidates()">
+                                    <i class="fas fa-trash me-1"></i>Remove
+                                </button>
+                            </div>
                         </div>
                     </div>
 
                     <div class="candidates-content" id="candidatesContent">
-                        <!-- Job categories and candidates tables will be loaded dynamically -->
+                        <!-- Position types and applications will be loaded dynamically -->
                     </div>
 
                     <!-- Candidate Details Modal -->
@@ -432,30 +1026,129 @@
                                                 <div class="score-circle">
                                                     <span class="score-value"></span>
                                                 </div>
-                                                <span class="score-label">Match Score</span>
+                                                <span class="score-label">Assessment Score</span>
+                                                <div class="score-info"></div>
                                             </div>
                                         </div>
                                         
                                         <div class="profile-sections">
-                                            <div class="section skills-section">
-                                                <h4><i class="fas fa-tools"></i> All Skills</h4>
-                                                <div class="skills-container"></div>
+                                            <!-- PDS-specific sections -->
+                                            <div class="section pds-sections">
+                                                <div class="section personal-info-section">
+                                                    <h4><i class="fas fa-user"></i> Personal Information</h4>
+                                                    <div class="personal-info-container">
+                                                        <div class="row">
+                                                            <div class="col-md-6">
+                                                                <div class="info-group">
+                                                                    <h6>Basic Information</h6>
+                                                                    <div class="info-item">
+                                                                        <span class="label">Full Name:</span>
+                                                                        <span class="value" id="fullName">N/A</span>
+                                                                    </div>
+                                                                    <div class="info-item">
+                                                                        <span class="label">Date of Birth:</span>
+                                                                        <span class="value" id="dateOfBirth">N/A</span>
+                                                                    </div>
+                                                                    <div class="info-item">
+                                                                        <span class="label">Place of Birth:</span>
+                                                                        <span class="value" id="placeOfBirth">N/A</span>
+                                                                    </div>
+                                                                    <div class="info-item">
+                                                                        <span class="label">Gender:</span>
+                                                                        <span class="value" id="gender">N/A</span>
+                                                                    </div>
+                                                                    <div class="info-item">
+                                                                        <span class="label">Civil Status:</span>
+                                                                        <span class="value" id="civilStatus">N/A</span>
+                                                                    </div>
+                                                                    <div class="info-item">
+                                                                        <span class="label">Citizenship:</span>
+                                                                        <span class="value" id="citizenship">N/A</span>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-md-6">
+                                                                <div class="info-group">
+                                                                    <h6>Physical Information</h6>
+                                                                    <div class="info-item">
+                                                                        <span class="label">Height:</span>
+                                                                        <span class="value" id="height">N/A</span>
+                                                                    </div>
+                                                                    <div class="info-item">
+                                                                        <span class="label">Weight:</span>
+                                                                        <span class="value" id="weight">N/A</span>
+                                                                    </div>
+                                                                    <div class="info-item">
+                                                                        <span class="label">Blood Type:</span>
+                                                                        <span class="value" id="bloodType">N/A</span>
+                                                                    </div>
+                        
+                                                            </div>
+                                                        </div>
+                                                        <div class="row mt-3">
+                                                            <div class="col-md-6">
+                                                                <div class="info-group">
+                                                                    <h6>Residential Address</h6>
+                                                                    <div class="info-item">
+                                                                        <span class="value" id="residentialAddress">N/A</span>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-md-6">
+                                                                <div class="info-group">
+                                                                    <h6>Permanent Address</h6>
+                                                                    <div class="info-item">
+                                                                        <span class="value" id="permanentAddress">N/A</span>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                
+                                                <div class="section government-ids-section">
+                                                    <h4><i class="fas fa-id-card"></i> Government IDs</h4>
+                                                    <div class="government-ids-container"></div>
+                                                </div>
+                                                
+                                                <div class="section educational-background-section">
+                                                    <h4><i class="fas fa-graduation-cap"></i> Educational Background</h4>
+                                                    <div class="educational-background-container"></div>
+                                                </div>
+                                                
+                                                <div class="section eligibility-section">
+                                                    <h4><i class="fas fa-certificate"></i> Civil Service Eligibility</h4>
+                                                    <div class="eligibility-container"></div>
+                                                </div>
+                                                
+                                                <div class="section work-experience-section">
+                                                    <h4><i class="fas fa-briefcase"></i> Work Experience</h4>
+                                                    <div class="work-experience-container"></div>
+                                                </div>
+                                                
+                                                <div class="section training-section">
+                                                    <h4><i class="fas fa-chalkboard-teacher"></i> Training & Development</h4>
+                                                    <div class="training-container"></div>
+                                                </div>
+                                                
+                                                <div class="section volunteer-section">
+                                                    <h4><i class="fas fa-hands-helping"></i> Volunteer Work</h4>
+                                                    <div class="volunteer-container"></div>
+                                                </div>
+                                                
+                                                <div class="section references-section">
+                                                    <h4><i class="fas fa-users"></i> Personal References</h4>
+                                                    <div class="references-container"></div>
+                                                </div>
+                                                
+                                                <div class="section assessment-results-section">
+                                                    <h4><i class="fas fa-chart-line"></i> Unified Assessment Results</h4>
+                                                    <div class="assessment-results-container"></div>
+                                                </div>
+                                                
+                                                <!-- Semantic analysis is now integrated into unified assessment -->
                                             </div>
                                             
-                                            <div class="section education-section">
-                                                <h4><i class="fas fa-graduation-cap"></i> Education</h4>
-                                                <div class="education-container"></div>
-                                            </div>
-                                            
-                                            <div class="section matched-skills-section">
-                                                <h4><i class="fas fa-check-circle text-success"></i> Matched Skills</h4>
-                                                <div class="matched-skills-container"></div>
-                                            </div>
-                                            
-                                            <div class="section missing-skills-section">
-                                                <h4><i class="fas fa-times-circle text-danger"></i> Missing Skills</h4>
-                                                <div class="missing-skills-container"></div>
-                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -463,13 +1156,17 @@
                                     <button type="button" class="btn btn-danger" id="removeCandidate">
                                         <i class="fas fa-trash-alt"></i> Remove
                                     </button>
-                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                                    <button type="button" class="btn btn-warning" id="rejectCandidate">
-                                        <i class="fas fa-times"></i> Reject
-                                    </button>
-                                    <button type="button" class="btn btn-success" id="shortlistCandidate">
-                                        <i class="fas fa-star"></i> Shortlist
-                                    </button>
+                                    <div class="modal-footer-actions">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                            <i class="fas fa-times"></i> Close
+                                        </button>
+                                        <button type="button" class="btn btn-warning" id="rejectCandidate">
+                                            <i class="fas fa-times-circle"></i> Reject
+                                        </button>
+                                        <button type="button" class="btn btn-success" id="shortlistCandidate">
+                                            <i class="fas fa-star"></i> Shortlist
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -477,421 +1174,872 @@
                 </section>
 
                 <!-- Analytics Section -->
-                <section id="analyticsSection" class="content-section">
-                    <div class="section-header">
-                        <h2>Analytics Dashboard</h2>
-                        <div class="section-actions">
+                <section id="analyticsSection" class="content-section" data-help="analytics">
+                    <!-- Analytics Header -->
+                    <div class="analytics-header">
+                        <div class="header-content">
+                            <h1><i class="fas fa-chart-line me-3"></i>Assessment Analytics</h1>
+                            <p class="analytics-subtitle">University Assessment Criteria Performance & Insights</p>
+                        </div>
+                        <div class="header-actions">
                             <div class="date-range-picker">
                                 <i class="fas fa-calendar me-2"></i>
                                 <select id="dateRange" class="form-select">
                                     <option value="7">Last 7 days</option>
-                                    <option value="30">Last 30 days</option>
+                                    <option value="30" selected>Last 30 days</option>
                                     <option value="90">Last 90 days</option>
                                     <option value="365">Last year</option>
                                 </select>
                             </div>
+                            <button class="btn btn-outline-primary" id="exportAnalyticsBtn">
+                                <i class="fas fa-download me-2"></i>Export Report
+                            </button>
                         </div>
                     </div>
 
-                    <div class="analytics-grid">
-                        <!-- Metrics Cards -->
-                        <div class="metrics-row">
-                            <div class="metric-card">
-                                <div class="metric-icon">
-                                    <i class="fas fa-users"></i>
-                                </div>
-                                <div class="metric-content">
-                                    <h3 id="totalCandidates">0</h3>
-                                    <p>Total Candidates</p>
-                                    <span class="metric-trend positive">
-                                        <i class="fas fa-arrow-up"></i> 12%
-                                    </span>
-                                </div>
-                            </div>
-                            <div class="metric-card">
-                                <div class="metric-icon">
-                                    <i class="fas fa-check-circle"></i>
-                                </div>
-                                <div class="metric-content">
-                                    <h3 id="conversionRate">0%</h3>
-                                    <p>Conversion Rate</p>
-                                    <span class="metric-trend positive">
-                                        <i class="fas fa-arrow-up"></i> 5%
-                                    </span>
-                                </div>
-                            </div>
-                            <div class="metric-card">
-                                <div class="metric-icon">
-                                    <i class="fas fa-clock"></i>
-                                </div>
-                                <div class="metric-content">
-                                    <h3 id="avgTimeToHire">0</h3>
-                                    <p>Avg. Time to Hire</p>
-                                    <span class="metric-trend negative">
-                                        <i class="fas fa-arrow-down"></i> 2 days
-                                    </span>
-                                </div>
-                            </div>
-                            <div class="metric-card">
-                                <div class="metric-icon">
-                                    <i class="fas fa-star"></i>
-                                </div>
-                                <div class="metric-content">
-                                    <h3 id="qualityOfHire">0%</h3>
-                                    <p>Quality of Hire</p>
-                                    <span class="metric-trend positive">
-                                        <i class="fas fa-arrow-up"></i> 8%
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Charts -->
-                        <div class="charts-grid">
-                            <div class="card">
+                    <!-- Analytics Content Container -->
+                    <div class="analytics-container">
+                        <!-- University Assessment Criteria Overview -->
+                        <section class="criteria-overview-section">
+                            <div class="card enhanced-card">
                                 <div class="card-header">
-                                    <h3>Candidate Flow</h3>
+                                    <h2><i class="fas fa-graduation-cap me-2"></i>Assessment Criteria Performance</h2>
+                                    <p class="card-subtitle">University assessment criteria scoring distribution</p>
                                 </div>
                                 <div class="card-body">
-                                    <canvas id="candidateFlowChart"></canvas>
+                                    <div class="criteria-grid">
+                                        <!-- Education Criteria (40%) -->
+                                        <div class="criteria-card education">
+                                            <div class="criteria-header">
+                                                <div class="criteria-icon">
+                                                    <i class="fas fa-graduation-cap"></i>
+                                                </div>
+                                                <div class="criteria-info">
+                                                    <h4>Education</h4>
+                                                    <span class="criteria-weight">40%</span>
+                                                </div>
+                                            </div>
+                                            <div class="criteria-stats">
+                                                <div class="avg-score">
+                                                    <span class="score-value" id="educationAvgScore">-</span>
+                                                    <span class="score-label">Avg Score</span>
+                                                </div>
+                                                <div class="score-distribution">
+                                                    <div class="distribution-bar">
+                                                        <div class="distribution-fill" id="educationDistribution"></div>
+                                                    </div>
+                                                    <span class="distribution-label" id="educationDistributionLabel">-</span>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Experience Criteria (20%) -->
+                                        <div class="criteria-card experience">
+                                            <div class="criteria-header">
+                                                <div class="criteria-icon">
+                                                    <i class="fas fa-briefcase"></i>
+                                                </div>
+                                                <div class="criteria-info">
+                                                    <h4>Experience</h4>
+                                                    <span class="criteria-weight">20%</span>
+                                                </div>
+                                            </div>
+                                            <div class="criteria-stats">
+                                                <div class="avg-score">
+                                                    <span class="score-value" id="experienceAvgScore">-</span>
+                                                    <span class="score-label">Avg Score</span>
+                                                </div>
+                                                <div class="score-distribution">
+                                                    <div class="distribution-bar">
+                                                        <div class="distribution-fill" id="experienceDistribution"></div>
+                                                    </div>
+                                                    <span class="distribution-label" id="experienceDistributionLabel">-</span>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Training Criteria (10%) -->
+                                        <div class="criteria-card training">
+                                            <div class="criteria-header">
+                                                <div class="criteria-icon">
+                                                    <i class="fas fa-chalkboard-teacher"></i>
+                                                </div>
+                                                <div class="criteria-info">
+                                                    <h4>Training</h4>
+                                                    <span class="criteria-weight">10%</span>
+                                                </div>
+                                            </div>
+                                            <div class="criteria-stats">
+                                                <div class="avg-score">
+                                                    <span class="score-value" id="trainingAvgScore">-</span>
+                                                    <span class="score-label">Avg Score</span>
+                                                </div>
+                                                <div class="score-distribution">
+                                                    <div class="distribution-bar">
+                                                        <div class="distribution-fill" id="trainingDistribution"></div>
+                                                    </div>
+                                                    <span class="distribution-label" id="trainingDistributionLabel">-</span>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Eligibility Criteria (10%) -->
+                                        <div class="criteria-card eligibility">
+                                            <div class="criteria-header">
+                                                <div class="criteria-icon">
+                                                    <i class="fas fa-check-circle"></i>
+                                                </div>
+                                                <div class="criteria-info">
+                                                    <h4>Eligibility</h4>
+                                                    <span class="criteria-weight">10%</span>
+                                                </div>
+                                            </div>
+                                            <div class="criteria-stats">
+                                                <div class="avg-score">
+                                                    <span class="score-value" id="eligibilityAvgScore">-</span>
+                                                    <span class="score-label">Avg Score</span>
+                                                </div>
+                                                <div class="score-distribution">
+                                                    <div class="distribution-bar">
+                                                        <div class="distribution-fill" id="eligibilityDistribution"></div>
+                                                    </div>
+                                                    <span class="distribution-label" id="eligibilityDistributionLabel">-</span>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Accomplishments Criteria (5%) -->
+                                        <div class="criteria-card accomplishments">
+                                            <div class="criteria-header">
+                                                <div class="criteria-icon">
+                                                    <i class="fas fa-trophy"></i>
+                                                </div>
+                                                <div class="criteria-info">
+                                                    <h4>Accomplishments</h4>
+                                                    <span class="criteria-weight">5%</span>
+                                                </div>
+                                            </div>
+                                            <div class="criteria-stats">
+                                                <div class="avg-score">
+                                                    <span class="score-value" id="accomplishmentsAvgScore">-</span>
+                                                    <span class="score-label">Avg Score</span>
+                                                </div>
+                                                <div class="score-distribution">
+                                                    <div class="distribution-bar">
+                                                        <div class="distribution-fill" id="accomplishmentsDistribution"></div>
+                                                    </div>
+                                                    <span class="distribution-label" id="accomplishmentsDistributionLabel">-</span>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Potential Criteria (15%) -->
+                                        <div class="criteria-card potential">
+                                            <div class="criteria-header">
+                                                <div class="criteria-icon">
+                                                    <i class="fas fa-rocket"></i>
+                                                </div>
+                                                <div class="criteria-info">
+                                                    <h4>Potential</h4>
+                                                    <span class="criteria-weight">15%</span>
+                                                </div>
+                                            </div>
+                                            <div class="criteria-stats">
+                                                <div class="avg-score">
+                                                    <span class="score-value" id="potentialAvgScore">-</span>
+                                                    <span class="score-label">Avg Score</span>
+                                                </div>
+                                                <div class="score-distribution">
+                                                    <div class="distribution-bar">
+                                                        <div class="distribution-fill" id="potentialDistribution"></div>
+                                                    </div>
+                                                    <span class="distribution-label" id="potentialDistributionLabel">-</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
-                            <div class="card">
+                        </section>
+
+                        <!-- Assessment Summary Metrics -->
+                        <section class="metrics-section">
+                            <div class="metrics-row">
+                                <div class="metric-card enhanced assessment-metric">
+                                    <div class="metric-header">
+                                        <div class="metric-icon total">
+                                            <i class="fas fa-users"></i>
+                                        </div>
+                                        <div class="metric-trend" id="totalCandidatesTrend">
+                                            <i class="fas fa-arrow-up"></i>
+                                            <span>-</span>
+                                        </div>
+                                    </div>
+                                    <div class="metric-content">
+                                        <h3 id="totalCandidatesAnalytics">0</h3>
+                                        <p>Total Assessed</p>
+                                        <small class="metric-subtitle">Candidates evaluated</small>
+                                    </div>
+                                </div>
+
+                                <div class="metric-card enhanced assessment-metric">
+                                    <div class="metric-header">
+                                        <div class="metric-icon average">
+                                            <i class="fas fa-chart-bar"></i>
+                                        </div>
+                                        <div class="metric-trend" id="avgScoreTrend">
+                                            <i class="fas fa-minus"></i>
+                                        <span>-</span>
+                                    </div>
+                                </div>
+                                <div class="metric-content">
+                                    <h3 id="averageAssessmentScore">0.0</h3>
+                                    <p>Average Score</p>
+                                    <small class="metric-subtitle">Out of 100</small>
+                                </div>
+                            </div>
+
+                            <div class="metric-card enhanced assessment-metric">
+                                <div class="metric-header">
+                                    <div class="metric-icon qualified">
+                                        <i class="fas fa-star"></i>
+                                    </div>
+                                    <div class="metric-trend" id="qualifiedCandidatesTrend">
+                                        <i class="fas fa-arrow-up"></i>
+                                        <span>-</span>
+                                    </div>
+                                </div>
+                                <div class="metric-content">
+                                    <h3 id="qualifiedCandidates">0</h3>
+                                    <p>Qualified (≥70)</p>
+                                    <small class="metric-subtitle">High-scoring candidates</small>
+                                </div>
+                            </div>
+
+                            <div class="metric-card enhanced assessment-metric">
+                                <div class="metric-header">
+                                    <div class="metric-icon processing">
+                                        <i class="fas fa-clock"></i>
+                                    </div>
+                                    <div class="metric-trend" id="processingTimeTrend">
+                                        <i class="fas fa-arrow-down"></i>
+                                        <span>-</span>
+                                    </div>
+                                </div>
+                                <div class="metric-content">
+                                    <h3 id="avgAssessmentTime">0.0s</h3>
+                                    <p>Avg. Assessment Time</p>
+                                    <small class="metric-subtitle">Per candidate</small>
+                                </div>
+                            </div>
+                        </section>
+
+                        <!-- Assessment Charts -->
+                        <section class="charts-section">
+                            <div class="charts-row">
+                                <div class="chart-card">
+                                    <div class="card-header">
+                                        <h3><i class="fas fa-chart-line me-2"></i>Assessment Score Trends</h3>
+                                        <p class="card-subtitle">Daily assessment score averages over time</p>
+                                    </div>
+                                    <div class="card-body">
+                                        <canvas id="assessmentTrendsChart"></canvas>
+                                    </div>
+                                </div>
+
+                                <div class="chart-card">
+                                    <div class="card-header">
+                                        <h3><i class="fas fa-chart-pie me-2"></i>Score Distribution</h3>
+                                        <p class="card-subtitle">Assessment score ranges breakdown</p>
+                                    </div>
+                                    <div class="card-body">
+                                        <canvas id="scoreDistributionChart"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="charts-row">
+                                <div class="chart-card">
+                                    <div class="card-header">
+                                        <h3><i class="fas fa-chart-radar me-2"></i>Criteria Performance Radar</h3>
+                                        <p class="card-subtitle">Average performance across all assessment criteria</p>
+                                    </div>
+                                    <div class="card-body">
+                                        <canvas id="criteriaRadarChart"></canvas>
+                                    </div>
+                                </div>
+
+                                <div class="chart-card">
+                                    <div class="card-header">
+                                        <h3><i class="fas fa-chart-bar me-2"></i>Position Types Performance</h3>
+                                        <p class="card-subtitle">Average scores by position type</p>
+                                    </div>
+                                    <div class="card-body">
+                                        <canvas id="positionPerformanceChart"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+
+                        <!-- Detailed Assessment Insights -->
+                        <section class="insights-section">
+                            <div class="card enhanced-card">
                                 <div class="card-header">
-                                    <h3>Top Job Categories</h3>
+                                    <h2><i class="fas fa-lightbulb me-2"></i>Assessment Insights</h2>
+                                    <p class="card-subtitle">Key findings and recommendations</p>
                                 </div>
                                 <div class="card-body">
-                                    <canvas id="jobCategoriesChart"></canvas>
+                                    <div class="insights-grid" id="assessmentInsights">
+                                        <!-- Insights will be dynamically populated -->
+                                    </div>
                                 </div>
                             </div>
-                        </div>
+                        </section>
 
-                        <!-- Detailed Metrics -->
-                        <div class="metrics-table card">
-                            <div class="card-header">
-                                <h3>Recruitment Metrics</h3>
+                        <!-- Detailed Assessment Data Table -->
+                        <section class="assessment-data-section">
+                            <div class="assessment-data-table card">
+                                <div class="card-header">
+                                    <h3><i class="fas fa-table me-2"></i>Assessment Performance Breakdown</h3>
+                                    <div class="table-actions">
+                                        <button class="btn btn-sm btn-outline-secondary" id="refreshAssessmentData">
+                                        <i class="fas fa-sync-alt"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-primary" id="exportAssessmentData">
+                                        <i class="fas fa-download"></i> Export
+                                    </button>
+                                </div>
                             </div>
                             <div class="card-body">
                                 <div class="table-responsive">
-                                    <table class="table">
+                                    <table class="table assessment-table">
                                         <thead>
                                             <tr>
-                                                <th>Metric</th>
-                                                <th>Current</th>
-                                                <th>Previous</th>
-                                                <th>Change</th>
+                                                <th>Criteria</th>
+                                                <th>Weight</th>
+                                                <th>Avg Score</th>
+                                                <th>Excelling</th>
+                                                <th>Success Rate</th>
+                                                <th>Trend</th>
+                                                <th>Improvement Areas</th>
                                             </tr>
                                         </thead>
-                                        <tbody id="metricsTableBody">
-                                            <!-- Metrics will be loaded dynamically -->
+                                        <tbody id="assessmentDataTableBody">
+                                            <!-- Assessment data will be loaded dynamically -->
                                         </tbody>
                                     </table>
                                 </div>
                             </div>
-                        </div>
+                        </section>
                     </div>
                 </section>
-
-                <!-- Job Requirements Section -->
-                <section id="jobsSection" class="content-section">
-                    <div class="section-header d-flex justify-content-between align-items-center">
-                        <div>
-                            <h2><i class="fas fa-briefcase me-2"></i>Job Requirements</h2>
-                            <p class="section-description">Manage job positions and requirements for resume screening</p>
-                        </div>
-                        <div class="section-actions d-flex gap-2">
-                            <button class="btn btn-outline-info" id="bulkExportBtn" title="Export all jobs as PDF">
-                                <i class="fas fa-file-export me-2"></i>Bulk Export
-                            </button>
-                            <button class="btn btn-primary add-job-btn" id="addJobBtn">
-                                <i class="fas fa-plus"></i>
-                                Add New Job
-                            </button>
-                        </div>
-                    </div>
-
-                    <div class="jobs-grid" id="jobsGrid">
-                        <!-- Job cards will be loaded dynamically -->
-                    </div>
-
-                    <!-- Add/Edit Job Modal -->
-                    <div class="modal fade" id="jobModal" tabindex="-1">
-                        <div class="modal-dialog modal-lg">
-                            <div class="modal-content">
-                                <div class="modal-progress">
-                                    <div class="modal-progress-bar"></div>
-                                </div>
-                                <div class="modal-header">
-                                    <h5 class="modal-title" id="jobModalTitle">Add New Job</h5>
-                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                </div>
-                                <div class="modal-body">
-                                    <form id="jobForm">
-                                        <!-- Basic Information Section -->
-                                        <div class="job-modal-section">
-                                            <div class="job-modal-section-title">
-                                                <i class="fas fa-info-circle"></i>
-                                                Basic Information
-                                            </div>
-                                            <div class="modal-form-grid">
-                                                <div class="enhanced-form-field">
-                                                    <label class="form-label">
-                                                        <i class="fas fa-briefcase"></i>
-                                                        Job Title
-                                                        <span class="required-indicator">*</span>
-                                                    </label>
-                                                    <input type="text" class="form-control" id="jobTitle" required placeholder="e.g. Senior Software Engineer">
-                                                    <div class="field-help">
-                                                        <i class="fas fa-lightbulb"></i>
-                                                        Make it specific and descriptive
-                                                    </div>
-                                                </div>
-                                                <div class="enhanced-form-field">
-                                                    <label class="form-label">
-                                                        <i class="fas fa-building"></i>
-                                                        Department
-                                                        <span class="required-indicator">*</span>
-                                                    </label>
-                                                    <input type="text" class="form-control" id="jobDepartment" required placeholder="e.g. Engineering">
-                                                    <div class="field-help">
-                                                        <i class="fas fa-lightbulb"></i>
-                                                        Which team will this person join?
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <!-- Category & Experience Section -->
-                                        <div class="job-modal-section">
-                                            <div class="job-modal-section-title">
-                                                <i class="fas fa-tags"></i>
-                                                Category & Experience
-                                            </div>
-                                            <div class="modal-form-grid">
-                                                <div class="enhanced-form-field">
-                                                    <label class="form-label">
-                                                        <i class="fas fa-tag"></i>
-                                                        Category
-                                                        <span class="required-indicator">*</span>
-                                                    </label>
-                                                    <div class="d-flex gap-2">
-                                                        <select class="form-select" id="jobCategory" required>
-                                                            <option value="">Select a category</option>
-                                                        </select>
-                                                        <div class="category-buttons">
-                                                            <button type="button" class="btn btn-outline-primary" id="addCategoryBtn" title="Add new category">
-                                                                <i class="fas fa-plus"></i>
-                                                            </button>
-                                                            <button type="button" class="btn btn-outline-secondary" id="manageCategoriesBtn" title="Manage categories">
-                                                                <i class="fas fa-cog"></i>
-                                                            </button>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div class="enhanced-form-field">
-                                                    <label class="form-label">
-                                                        <i class="fas fa-chart-line"></i>
-                                                        Experience Level
-                                                        <span class="required-indicator">*</span>
-                                                    </label>
-                                                    <select class="form-select" id="jobExperience" required>
-                                                        <option value="">Select experience level</option>
-                                                        <option value="entry">Entry Level (0-2 years)</option>
-                                                        <option value="mid">Mid Level (2-5 years)</option>
-                                                        <option value="senior">Senior Level (5+ years)</option>
-                                                        <option value="lead">Lead/Manager (7+ years)</option>
-                                                    </select>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <!-- Skills Requirements Section -->
-                                        <div class="job-modal-section job-requirements-section">
-                                            <div class="section-header">
-                                                <div class="section-icon">
-                                                    <i class="fas fa-cogs"></i>
-                                                </div>
-                                                <div>
-                                                    <div class="section-title">Required Skills</div>
-                                                    <div class="section-description">Add skills that candidates must have</div>
-                                                </div>
-                                            </div>
-                                            <div class="enhanced-form-field">
-                                                <label class="form-label">
-                                                    <i class="fas fa-keyboard"></i>
-                                                    Skills Input
-                                                    <span class="required-indicator">*</span>
-                                                </label>
-                                                <div class="skills-input-container">
-                                                    <div class="skills-input-wrapper">
-                                                        <input type="text" class="form-control" id="skillInput" placeholder="Type a skill and press Enter or comma">
-                                                    </div>
-                                                    <div id="skillTags" class="skill-tags"></div>
-                                                    <div class="skills-counter" id="skillsCounter">0 skills added</div>
-                                                </div>
-                                                <div class="field-help">
-                                                    <i class="fas fa-lightbulb"></i>
-                                                    Add at least 3-5 key skills for better candidate matching
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <!-- Job Description Section -->
-                                        <div class="job-modal-section">
-                                            <div class="job-modal-section-title">
-                                                <i class="fas fa-file-alt"></i>
-                                                Job Description
-                                            </div>
-                                            <div class="enhanced-form-field form-field-full">
-                                                <label class="form-label">
-                                                    <i class="fas fa-edit"></i>
-                                                    Description
-                                                    <span class="required-indicator">*</span>
-                                                </label>
-                                                <textarea class="form-control" id="jobDescription" rows="6" required placeholder="Describe the role, responsibilities, and what makes this position exciting..."></textarea>
-                                                <div class="field-help">
-                                                    <i class="fas fa-lightbulb"></i>
-                                                    Include key responsibilities, team culture, and growth opportunities
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </form>
-                                </div>
-                                <div class="modal-footer">
-                                    <div class="progress-info">
-                                        <span id="formProgress">Complete all required fields</span>
-                                    </div>
-                                    <div class="action-buttons">
-                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                                            <i class="fas fa-times me-2"></i>Cancel
-                                        </button>
-                                        <button type="button" class="btn btn-primary" id="saveJobBtn">
-                                            <i class="fas fa-save me-2"></i>Save Job
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Add Category Modal -->
-                    <div class="modal fade" id="categoryModal" tabindex="-1">
-                        <div class="modal-dialog">
-                            <div class="modal-content">
-                                <div class="modal-header">
-                                    <h5 class="modal-title">Add New Category</h5>
-                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                </div>
-                                <div class="modal-body">
-                                    <form id="categoryForm">
-                                        <div class="mb-3">
-                                            <label class="form-label">Category Name</label>
-                                            <input type="text" class="form-control" id="categoryName" required>
-                                        </div>
-                                        <div class="mb-3">
-                                            <label class="form-label">Description</label>
-                                            <textarea class="form-control" id="categoryDescription" rows="3"></textarea>
-                                        </div>
-                                    </form>
-                                </div>
-                                <div class="modal-footer">
-                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                                    <button type="button" class="btn btn-primary" id="saveCategoryBtn">Save Category</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                
+                <!-- LSPU Job Posting Management Section -->
+                <section id="job-postingsSection" class="content-section">
+                    {% include 'job_posting_management.html' %}
                 </section>
 
                 <!-- Settings Section -->
                 <section id="settingsSection" class="content-section">
-                    <div class="section-header">
-                        <h2>Settings</h2>
+                    <!-- Settings Header -->
+                    <div class="settings-header">
+                        <h1><i class="fas fa-cog me-3"></i>Settings</h1>
+                        <p class="settings-subtitle">Manage your account preferences and application settings</p>
                     </div>
 
-                    <div class="settings-grid">
-                        <!-- Profile Settings -->
-                        <div class="card">
-                            <div class="card-header">
-                                <h3>Profile Settings</h3>
-                            </div>
-                            <div class="card-body">
-                                <form id="profileForm">
-                                    <div class="mb-3">
-                                        <label class="form-label">Name</label>
-                                        <input type="text" class="form-control" id="settingsName" value="Mark Johnson">
-                                    </div>
-                                    <div class="mb-3">
-                                        <label class="form-label">Email</label>
-                                        <input type="email" class="form-control" id="settingsEmail" value="mark@example.com">
-                                    </div>
-                                    <div class="mb-3">
-                                        <label class="form-label">Role</label>
-                                        <input type="text" class="form-control" id="settingsRole" value="HR Manager" readonly>
-                                    </div>
-                                    <button type="submit" class="btn btn-primary">Save Changes</button>
-                                </form>
-                            </div>
-                        </div>
+                    <!-- Settings Navigation Tabs -->
+                    <div class="settings-tabs-container">
+                        <ul class="nav nav-tabs settings-tabs" id="settingsTabs" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link active" id="profile-tab" data-bs-toggle="tab" data-bs-target="#profile-panel" type="button" role="tab">
+                                    <i class="fas fa-user me-2"></i>Profile
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="notifications-tab" data-bs-toggle="tab" data-bs-target="#notifications-panel" type="button" role="tab">
+                                    <i class="fas fa-bell me-2"></i>Notifications
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="preferences-tab" data-bs-toggle="tab" data-bs-target="#preferences-panel" type="button" role="tab">
+                                    <i class="fas fa-sliders-h me-2"></i>Preferences
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="security-tab" data-bs-toggle="tab" data-bs-target="#security-panel" type="button" role="tab">
+                                    <i class="fas fa-shield-alt me-2"></i>Security
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="about-tab" data-bs-toggle="tab" data-bs-target="#about-panel" type="button" role="tab">
+                                    <i class="fas fa-info-circle me-2"></i>About
+                                </button>
+                            </li>
+                        </ul>
+                    </div>
 
-                        <!-- Notification Settings -->
-                        <div class="card">
-                            <div class="card-header">
-                                <h3>Notification Settings</h3>
-                            </div>
-                            <div class="card-body">
-                                <div class="notification-settings">
-                                    <div class="form-check form-switch mb-3">
-                                        <input class="form-check-input" type="checkbox" id="emailNotifications" checked>
-                                        <label class="form-check-label">Email Notifications</label>
-                                    </div>
-                                    <div class="form-check form-switch mb-3">
-                                        <input class="form-check-input" type="checkbox" id="newCandidateAlerts" checked>
-                                        <label class="form-check-label">New Candidate Alerts</label>
-                                    </div>
-                                    <div class="form-check form-switch mb-3">
-                                        <input class="form-check-input" type="checkbox" id="weeklyReports">
-                                        <label class="form-check-label">Weekly Reports</label>
+                    <!-- Settings Tab Content -->
+                    <div class="tab-content settings-content" id="settingsTabContent">
+                        <!-- Profile Settings Panel -->
+                        <div class="tab-pane fade show active" id="profile-panel" role="tabpanel">
+                            <div class="settings-panel">
+                                <div class="panel-header">
+                                    <h3><i class="fas fa-user me-2"></i>Profile Information</h3>
+                                    <p>Update your personal information and account details</p>
+                                </div>
+                                <div class="panel-content">
+                                    <div class="row">
+                                        <div class="col-md-8">
+                                            <form id="profileForm" class="compact-form">
+                                                <div class="row g-3">
+                                                    <div class="col-md-6">
+                                                        <label class="form-label">Full Name</label>
+                                                        <input type="text" class="form-control" id="settingsName" value="Mark Johnson">
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <label class="form-label">Email Address</label>
+                                                        <input type="email" class="form-control" id="settingsEmail" value="mark@company.com">
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <label class="form-label">Job Title</label>
+                                                        <input type="text" class="form-control" id="settingsRole" value="HR Manager">
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <label class="form-label">Department</label>
+                                                        <select class="form-select" id="settingsDepartment">
+                                                            <option value="hr" selected>Human Resources</option>
+                                                            <option value="recruitment">Recruitment</option>
+                                                            <option value="talent">Talent Acquisition</option>
+                                                            <option value="management">Management</option>
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                                <div class="form-actions mt-4">
+                                                    <button type="submit" class="btn btn-primary">
+                                                        <i class="fas fa-save me-2"></i>Save Changes
+                                                    </button>
+                                                    <button type="button" class="btn btn-outline-secondary">
+                                                        <i class="fas fa-undo me-2"></i>Reset
+                                                    </button>
+                                                </div>
+                                            </form>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="profile-summary">
+                                                <div class="profile-avatar">
+                                                    <i class="fas fa-user-circle"></i>
+                                                </div>
+                                                <h5>Mark Jiru Yolola</h5>
+                                                <p class="text-muted">HR Manager</p>
+                                                <div class="profile-stats">
+                                                    <div class="stat">
+                                                        <span class="value">156</span>
+                                                        <span class="label">Candidates Reviewed</span>
+                                                    </div>
+                                                    <div class="stat">
+                                                        <span class="value">23</span>
+                                                        <span class="label">Jobs Created</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Integration Settings -->
-                        <div class="card">
-                            <div class="card-header">
-                                <h3>Integrations</h3>
-                            </div>
-                            <div class="card-body">
-                                <div class="integration-list">
-                                    <div class="integration-item">
-                                        <div class="integration-info">
-                                            <i class="fab fa-slack"></i>
-                                            <div>
-                                                <h4>Slack</h4>
-                                                <p>Connected to #hr-notifications</p>
+                        <!-- Notifications Panel -->
+                        <div class="tab-pane fade" id="notifications-panel" role="tabpanel">
+                            <div class="settings-panel">
+                                <div class="panel-header">
+                                    <h3><i class="fas fa-bell me-2"></i>Notification Preferences</h3>
+                                    <p>Configure how and when you receive updates</p>
+                                </div>
+                                <div class="panel-content">
+                                    <div class="row g-4">
+                                        <div class="col-md-6">
+                                            <div class="notification-group">
+                                                <h5>Email Notifications</h5>
+                                                <div class="notification-item">
+                                                    <div class="form-check form-switch">
+                                                        <input class="form-check-input" type="checkbox" id="emailNotifications" checked>
+                                                        <label class="form-check-label" for="emailNotifications">
+                                                            <strong>General Email Updates</strong>
+                                                            <span class="d-block text-muted small">Receive important updates via email</span>
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                                <div class="notification-item">
+                                                    <div class="form-check form-switch">
+                                                        <input class="form-check-input" type="checkbox" id="newCandidateAlerts" checked>
+                                                        <label class="form-check-label" for="newCandidateAlerts">
+                                                            <strong>New Candidate Alerts</strong>
+                                                            <span class="d-block text-muted small">When new resumes are uploaded</span>
+                                                        </label>
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
-                                        <button class="btn btn-outline-danger btn-sm">Disconnect</button>
+                                        <div class="col-md-6">
+                                            <div class="notification-group">
+                                                <h5>System Notifications</h5>
+                                                <div class="notification-item">
+                                                    <div class="form-check form-switch">
+                                                        <input class="form-check-input" type="checkbox" id="weeklyReports">
+                                                        <label class="form-check-label" for="weeklyReports">
+                                                            <strong>Weekly Reports</strong>
+                                                            <span class="d-block text-muted small">Performance summaries every week</span>
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                                <div class="notification-item">
+                                                    <div class="form-check form-switch">
+                                                        <input class="form-check-input" type="checkbox" id="maintenanceAlerts" checked>
+                                                        <label class="form-check-label" for="maintenanceAlerts">
+                                                            <strong>Maintenance Alerts</strong>
+                                                            <span class="d-block text-muted small">System updates and downtime notices</span>
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
-                                    <div class="integration-item">
-                                        <div class="integration-info">
-                                            <i class="fab fa-trello"></i>
-                                            <div>
-                                                <h4>Trello</h4>
-                                                <p>Not connected</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Preferences Panel -->
+                        <div class="tab-pane fade" id="preferences-panel" role="tabpanel">
+                            <div class="settings-panel">
+                                <div class="panel-header">
+                                    <h3><i class="fas fa-sliders-h me-2"></i>Application Preferences</h3>
+                                    <p>Customize your application experience</p>
+                                </div>
+                                <div class="panel-content">
+                                    <div class="row g-4">
+                                        <div class="col-md-6">
+                                            <div class="preference-group">
+                                                <h5>Display Settings</h5>
+                                                <div class="mb-3">
+                                                    <label class="form-label">Default View Mode</label>
+                                                    <select class="form-select" id="defaultViewMode">
+                                                        <option value="table" selected>Table View</option>
+                                                        <option value="card">Card View</option>
+                                                        <option value="list">List View</option>
+                                                    </select>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label class="form-label">Results Per Page</label>
+                                                    <select class="form-select" id="resultsPerPage">
+                                                        <option value="10">10 items</option>
+                                                        <option value="25" selected>25 items</option>
+                                                        <option value="50">50 items</option>
+                                                        <option value="100">100 items</option>
+                                                    </select>
+                                                </div>
                                             </div>
                                         </div>
-                                        <button class="btn btn-outline-primary btn-sm">Connect</button>
+                                        <div class="col-md-6">
+                                            <div class="preference-group">
+                                                <h5>System Behavior</h5>
+                                                <div class="mb-3">
+                                                    <label class="form-label">Auto-refresh Interval</label>
+                                                    <select class="form-select" id="autoRefresh">
+                                                        <option value="0">Disabled</option>
+                                                        <option value="30">30 seconds</option>
+                                                        <option value="60" selected>1 minute</option>
+                                                        <option value="300">5 minutes</option>
+                                                    </select>
+                                                </div>
+                                                <div class="form-check form-switch">
+                                                    <input class="form-check-input" type="checkbox" id="advancedFilters">
+                                                    <label class="form-check-label" for="advancedFilters">
+                                                        <strong>Show Advanced Filters</strong>
+                                                        <span class="d-block text-muted small">Display additional filtering options</span>
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Security Panel -->
+                        <div class="tab-pane fade" id="security-panel" role="tabpanel">
+                            <div class="settings-panel">
+                                <div class="panel-header">
+                                    <h3><i class="fas fa-shield-alt me-2"></i>Security & Privacy</h3>
+                                    <p>Manage your account security and data</p>
+                                </div>
+                                <div class="panel-content">
+                                    <div class="row g-4">
+                                        <div class="col-md-6">
+                                            <div class="security-group">
+                                                <h5>Account Security</h5>
+                                                <div class="security-action">
+                                                    <div class="action-info">
+                                                        <strong>Change Password</strong>
+                                                        <p class="text-muted small mb-2">Update your account password</p>
+                                                    </div>
+                                                    <button class="btn btn-outline-primary btn-sm" id="changePasswordBtn">
+                                                        <i class="fas fa-key me-1"></i>Change
+                                                    </button>
+                                                </div>
+                                                <div class="security-action">
+                                                    <div class="action-info">
+                                                        <strong>Two-Factor Authentication</strong>
+                                                        <p class="text-muted small mb-2">Coming soon - Additional security</p>
+                                                    </div>
+                                                    <button class="btn btn-outline-secondary btn-sm" disabled>
+                                                        <i class="fas fa-mobile-alt me-1"></i>Setup 2FA
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="security-group">
+                                                <h5>Data Management</h5>
+                                                <div class="security-action">
+                                                    <div class="action-info">
+                                                        <strong>Export Data</strong>
+                                                        <p class="text-muted small mb-2">Download all your data</p>
+                                                    </div>
+                                                    <button class="btn btn-outline-info btn-sm" id="exportDataBtn">
+                                                        <i class="fas fa-download me-1"></i>Export
+                                                    </button>
+                                                </div>
+                                                <div class="security-action danger-action">
+                                                    <div class="action-info">
+                                                        <strong>Delete Account</strong>
+                                                        <p class="text-danger small mb-2">Permanently delete your account</p>
+                                                    </div>
+                                                    <button class="btn btn-outline-danger btn-sm" id="deleteAccountBtn">
+                                                        <i class="fas fa-trash me-1"></i>Delete
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- About Panel -->
+                        <div class="tab-pane fade" id="about-panel" role="tabpanel">
+                            <div class="settings-panel">
+                                <div class="panel-header">
+                                    <h3><i class="fas fa-info-circle me-2"></i>About Resume AI</h3>
+                                    <p>Application information and support</p>
+                                </div>
+                                <div class="panel-content">
+                                    <div class="row g-4">
+                                        <div class="col-md-6">
+                                            <div class="info-group">
+                                                <h5>Application Details</h5>
+                                                <div class="info-list">
+                                                    <div class="info-item">
+                                                        <span class="label">Version</span>
+                                                        <span class="value">v2.1.0</span>
+                                                    </div>
+                                                    <div class="info-item">
+                                                        <span class="label">Last Updated</span>
+                                                        <span class="value">July 14, 2025</span>
+                                                    </div>
+                                                    <div class="info-item">
+                                                        <span class="label">License</span>
+                                                        <span class="value">Professional</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="support-group">
+                                                <h5>Support & Help</h5>
+                                                <div class="support-actions">
+                                                    <a href="mailto:support@resumeai.com" class="support-link">
+                                                        <i class="fas fa-envelope me-2"></i>Contact Support
+                                                    </a>
+                                                    <a href="#" class="support-link">
+                                                        <i class="fas fa-book me-2"></i>Help Center
+                                                    </a>
+                                                    <a href="#" class="support-link">
+                                                        <i class="fas fa-bug me-2"></i>Report Issue
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </section>
+
+                <!-- User Management Section (Admin Only) -->
+                {% if user_info.is_admin %}
+                <section id="user-managementSection" class="content-section">
+                    <!-- User Management Header -->
+                    <div class="settings-header">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h1><i class="fas fa-users-cog me-3"></i>User Management</h1>
+                                <p class="settings-subtitle">Manage user accounts and permissions</p>
+                            </div>
+                            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createUserModal">
+                                <i class="fas fa-plus me-2"></i>Create New User
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Users Table -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0"><i class="fas fa-users me-2"></i>User Accounts</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-hover" id="usersTable">
+                                    <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Email</th>
+                                            <th>Role</th>
+                                            <th>Status</th>
+                                            <th>Created</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="usersTableBody">
+                                        <!-- Users will be loaded here -->
+                                        <tr>
+                                            <td colspan="6" class="text-center">
+                                                <div class="spinner-border text-primary" role="status">
+                                                    <span class="visually-hidden">Loading...</span>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                {% endif %}
             </div>
         </main>
     </div>
+
+    <!-- Create User Modal -->
+    {% if user_info.is_admin %}
+    <div class="modal fade" id="createUserModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fas fa-user-plus me-2"></i>Create New User</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="createUserForm">
+                        <div class="mb-3">
+                            <label for="newUserEmail" class="form-label">Email Address</label>
+                            <input type="email" class="form-control" id="newUserEmail" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="newUserPassword" class="form-label">Password</label>
+                            <div class="input-group">
+                                <input type="password" class="form-control" id="newUserPassword" required>
+                                <button class="btn btn-outline-secondary" type="button" id="toggleNewUserPassword">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="newUserIsAdmin">
+                                <label class="form-check-label" for="newUserIsAdmin">
+                                    Administrator Privileges
+                                </label>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="newUserIsActive" checked>
+                                <label class="form-check-label" for="newUserIsActive">
+                                    Account Active
+                                </label>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="createUserBtn">
+                        <span class="btn-loader" style="display: none;">
+                            <i class="fas fa-spinner fa-spin me-2"></i>
+                        </span>
+                        Create User
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit User Modal -->
+    <div class="modal fade" id="editUserModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fas fa-user-edit me-2"></i>Edit User</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="editUserForm">
+                        <input type="hidden" id="editUserId">
+                        <div class="mb-3">
+                            <label for="editUserEmail" class="form-label">Email Address</label>
+                            <input type="email" class="form-control" id="editUserEmail" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editUserPassword" class="form-label">New Password (leave blank to keep current)</label>
+                            <div class="input-group">
+                                <input type="password" class="form-control" id="editUserPassword">
+                                <button class="btn btn-outline-secondary" type="button" id="toggleEditUserPassword">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="editUserIsAdmin">
+                                <label class="form-check-label" for="editUserIsAdmin">
+                                    Administrator Privileges
+                                </label>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="editUserIsActive">
+                                <label class="form-check-label" for="editUserIsActive">
+                                    Account Active
+                                </label>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="updateUserBtn">
+                        <span class="btn-loader" style="display: none;">
+                            <i class="fas fa-spinner fa-spin me-2"></i>
+                        </span>
+                        Update User
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
 
     <!-- Toast Notifications -->
     <div class="toast-container">
@@ -918,6 +2066,16 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
+    <!-- User Configuration -->
+    <script>
+        // Global user information for JavaScript
+        window.USER_INFO = {
+            email: '{{ user_info.email }}',
+            isAdmin: {{ 'true' if user_info.is_admin else 'false' }},
+            isActive: {{ 'true' if user_info.is_active else 'false' }}
+        };
+    </script>
+    
     <!-- Configuration and utilities must load first -->
     <script src="/static/js/config.js"></script>
     <script src="/static/js/utils/dom.js"></script>
@@ -937,12 +2095,139 @@
     
     <!-- Modules -->
     <script src="/static/js/modules/navigation.js"></script>
-    <script src="/static/js/modules/upload.js"></script>
-    <script src="/static/js/modules/jobs.js"></script>
-    <script src="/static/js/modules/job-export.js"></script>
-    <script src="/static/js/modules/candidates.js"></script>
-    <script src="/static/js/modules/analytics.js"></script>
-    <script src="/static/js/modules/dashboard.js"></script>
+    <script src="/static/js/modules/jobs.js?v=20251106230300"></script>
+    <script src="/static/js/modules/positions.js?v=20251106230300"></script>
+    <script src="/static/js/modules/job-export.js?v=20251106230300"></script>
+    <script src="/static/js/modules/upload_clean.js?v=20251106230300"></script>
+    <script src="/static/js/modules/candidates.js?v=20251106230300"></script>
+    <script src="/static/js/modules/analytics.js?v=20251106230300"></script>
+    <script src="/static/js/modules/dashboard.js?v=20251106230300"></script>
+    <script src="/static/js/modules/settings.js?v=20251106230300"></script>
+    <script src="/static/js/modules/user-management.js?v=20251106230300"></script>
+    <script src="/static/js/modules/job-posting-manager.js?v=20251106230300"></script>
+    
+    <!-- New System Modules -->
+    <script src="/static/js/modules/notifications.js"></script>
+    <script src="/static/js/modules/help-system.js"></script>
+    
+    <!-- Theme Detection and System Integration -->
+    <script>
+        // Initialize theme detection and system integration
+        document.addEventListener('DOMContentLoaded', function() {
+            // Detect current theme from body or data attribute
+            function detectTheme() {
+                const body = document.body;
+                const html = document.documentElement;
+                
+                // Check for theme attributes or classes
+                if (html.hasAttribute('data-theme')) {
+                    return html.getAttribute('data-theme');
+                } else if (body.classList.contains('dark-mode') || body.classList.contains('dark-theme')) {
+                    return 'dark';
+                } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                    return 'dark';
+                } else {
+                    return 'light';
+                }
+            }
+            
+            // Apply theme to document
+            function applyTheme(theme) {
+                document.documentElement.setAttribute('data-theme', theme);
+                console.log(`🎨 Theme applied: ${theme}`);
+            }
+            
+            // Initialize theme
+            const currentTheme = detectTheme();
+            applyTheme(currentTheme);
+            
+            // Wait for DOM to be fully ready, then initialize systems
+            function initializeSystems() {
+                console.log('🔍 Checking for dashboard buttons...');
+                
+                // Check if buttons exist
+                const notificationBtn = document.querySelector('.top-bar-right .btn-icon[title="Notifications"]');
+                const helpBtn = document.querySelector('.top-bar-right .btn-icon[title="Help"]');
+                
+                console.log('Notification button:', notificationBtn);
+                console.log('Help button:', helpBtn);
+                
+                // Also check for any btn-icon elements
+                const allBtnIcons = document.querySelectorAll('.btn-icon');
+                console.log('All btn-icon elements found:', allBtnIcons.length);
+                allBtnIcons.forEach((btn, index) => {
+                    console.log(`Button ${index}:`, btn, 'Title:', btn.getAttribute('title'));
+                });
+                
+                if (!notificationBtn || !helpBtn) {
+                    console.log('Buttons not ready yet, retrying...');
+                    setTimeout(initializeSystems, 100);
+                    return;
+                }
+                
+                // Add click test listeners to verify buttons work
+                notificationBtn.addEventListener('click', function(e) {
+                    console.log('🔔 Notification button clicked!', e);
+                });
+                
+                helpBtn.addEventListener('click', function(e) {
+                    console.log('❓ Help button clicked!', e);
+                });
+                
+                // Initialize notification and help systems
+                console.log('🚀 Initializing systems...');
+                
+                if (typeof NotificationSystem !== 'undefined') {
+                    window.notificationSystem = new NotificationSystem();
+                    console.log('✅ Notification system initialized');
+                    
+                    // Test notification system manually
+                    setTimeout(() => {
+                        if (window.notificationSystem) {
+                            window.notificationSystem.addNotification({
+                                type: 'info',
+                                title: 'System Ready',
+                                message: 'Notification system is working!'
+                            });
+                        }
+                    }, 1000);
+                } else {
+                    console.warn('NotificationSystem class not found');
+                }
+                
+                if (typeof HelpSystem !== 'undefined') {
+                    window.helpSystem = new HelpSystem();
+                    console.log('✅ Help system initialized');
+                } else {
+                    console.warn('HelpSystem class not found');
+                }
+                
+                // Initialize analytics system
+                if (typeof AnalyticsModule !== 'undefined') {
+                    window.analyticsModule = AnalyticsModule;
+                    console.log('✅ Analytics module initialized');
+                } else {
+                    console.warn('AnalyticsModule not found');
+                }
+                
+                console.log('🎉 Initialization complete!');
+            }
+            
+            // Start initialization after a brief delay
+            setTimeout(initializeSystems, 100);
+            
+            // Listen for theme changes
+            if (window.matchMedia) {
+                window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function(e) {
+                    const newTheme = e.matches ? 'dark' : 'light';
+                    applyTheme(newTheme);
+                });
+            }
+            
+            // Set current section from server
+            window.currentSection = '{{ current_section }}';
+        });
+    </script>
     
     <!-- Main application -->
     <script src="/static/js/dashboard.js"></script>

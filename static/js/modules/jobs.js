@@ -1,11 +1,14 @@
 // Job Management Module
 const JobsModule = {
     currentSkills: new Set(),
+    currentCertifications: new Set(),
     jobsGrid: null,
     addJobBtn: null,
     jobForm: null,
     skillInput: null,
     skillTags: null,
+    certificationInput: null,
+    certificationTags: null,
     saveJobBtn: null,
 
     // Initialize job management functionality
@@ -23,6 +26,8 @@ const JobsModule = {
         this.jobForm = document.getElementById('jobForm');
         this.skillInput = document.getElementById('skillInput');
         this.skillTags = document.getElementById('skillTags');
+        this.certificationInput = document.getElementById('certificationInput');
+        this.certificationTags = document.getElementById('certificationTags');
         this.saveJobBtn = document.getElementById('saveJobBtn');
     },
 
@@ -45,6 +50,21 @@ const JobsModule = {
                         this.currentSkills.add(skill);
                         this.updateSkillTags();
                         this.skillInput.value = '';
+                    }
+                }
+            });
+        }
+
+        // Certification input
+        if (this.certificationInput) {
+            this.certificationInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' || e.key === ',') {
+                    e.preventDefault();
+                    const certification = this.certificationInput.value.trim();
+                    if (certification) {
+                        this.currentCertifications.add(certification);
+                        this.updateCertificationTags();
+                        this.certificationInput.value = '';
                     }
                 }
             });
@@ -327,17 +347,27 @@ const JobsModule = {
 
     // Save job
     async saveJob() {
-        // Get form data
+        // Get basic form data
         const title = document.getElementById('jobTitle').value.trim();
         const department = document.getElementById('jobDepartment').value.trim();
         const category = document.getElementById('jobCategory').value.trim();
         const experience = document.getElementById('jobExperience').value.trim();
         const description = document.getElementById('jobDescription').value.trim();
+        const positionType = document.getElementById('positionType').value.trim();
+        
+        // Get detailed requirements data
+        const minimumEducation = document.getElementById('minimumEducation').value.trim();
+        const requiredExperience = parseInt(document.getElementById('requiredExperience').value) || 0;
+        const subjectArea = document.getElementById('subjectArea').value.trim();
+        const preferredQualifications = document.getElementById('preferredQualifications').value.trim();
+        
+        // Get certifications
+        const certifications = this.currentCertifications ? Array.from(this.currentCertifications) : [];
         
         // Validate required fields
         const validation = ValidationUtils.validateRequiredFields(
-            { title, department, category, experience, description },
-            ['title', 'department', 'category', 'experience', 'description']
+            { title, department, category, experience, description, minimumEducation },
+            ['title', 'department', 'category', 'experience', 'description', 'minimumEducation']
         );
         
         if (!validation.isValid) {
@@ -354,11 +384,22 @@ const JobsModule = {
             title,
             department,
             category,
+            position_type: positionType || category, // Use position type or fallback to category
             experience_level: experience,
             description,
-            requirements: Array.from(this.currentSkills).join(', '),
-            // Add priority skills (first 3-5 skills could be considered priority)
+            requirements: Array.from(this.currentSkills).join(', '), // Keep for backward compatibility
             priority_skills: Array.from(this.currentSkills).slice(0, 5).join(', ')
+        };
+        
+        // Prepare detailed requirements data
+        const requirementsData = {
+            position_type_id: positionType, // Will need to map this properly
+            minimum_education: minimumEducation,
+            required_experience: requiredExperience,
+            required_certifications: certifications,
+            preferred_qualifications: preferredQualifications,
+            subject_area: subjectArea,
+            required_skills: Array.from(this.currentSkills) // Store skills as array
         };
         
         // Add job ID if editing
@@ -376,6 +417,18 @@ const JobsModule = {
             }
             
             if (result.success) {
+                const savedJobId = jobId || result.job_id;
+                
+                // Save detailed requirements if we have a job ID
+                if (savedJobId) {
+                    try {
+                        await this.saveJobRequirements(savedJobId, requirementsData);
+                    } catch (reqError) {
+                        console.warn('Failed to save detailed requirements:', reqError);
+                        // Don't fail the entire operation if requirements fail
+                    }
+                }
+                
                 ToastUtils.showSuccess(`Job ${jobId ? 'updated' : 'created'} successfully`);
                 await this.loadJobs();
                 BootstrapInit.hideModal('jobModal');
@@ -385,6 +438,28 @@ const JobsModule = {
         } catch (error) {
             console.error('Error saving job:', error);
             ToastUtils.showError(error.message || 'Failed to save job');
+        }
+    },
+
+    // Save detailed job requirements
+    async saveJobRequirements(jobId, requirementsData) {
+        try {
+            const response = await fetch(`/api/jobs/${jobId}/requirements`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(requirementsData)
+            });
+            
+            if (!response.ok) {
+                throw new Error('Failed to save job requirements');
+            }
+            
+            console.log('Job requirements saved successfully');
+        } catch (error) {
+            console.error('Error saving job requirements:', error);
+            throw error;
         }
     },
 
@@ -439,6 +514,35 @@ const JobsModule = {
         this.updateFormProgress();
     },
 
+    // Update certification tags display
+    updateCertificationTags() {
+        if (!this.certificationTags) return;
+
+        this.certificationTags.innerHTML = Array.from(this.currentCertifications).map(certification => `
+            <span class="certification-tag">
+                ${DOMUtils.escapeHtml(certification)}
+                <i class="fas fa-times" data-certification="${DOMUtils.escapeHtml(certification)}"></i>
+            </span>
+        `).join('');
+
+        // Update certifications counter
+        this.updateCertificationsCounter();
+
+        // Add click handlers for removing certifications
+        this.certificationTags.querySelectorAll('.fa-times').forEach(icon => {
+            icon.addEventListener('click', (e) => {
+                e.preventDefault();
+                const certificationTag = icon.closest('.certification-tag');
+                certificationTag.classList.add('removing');
+                
+                setTimeout(() => {
+                    this.currentCertifications.delete(icon.dataset.certification);
+                    this.updateCertificationTags();
+                }, 200);
+            });
+        });
+    },
+
     // Update skills counter
     updateSkillsCounter() {
         const counter = document.getElementById('skillsCounter');
@@ -454,6 +558,15 @@ const JobsModule = {
         } else {
             counter.className = 'skills-counter';
         }
+    },
+
+    // Update certifications counter
+    updateCertificationsCounter() {
+        const counter = document.getElementById('certificationsCounter');
+        if (!counter) return;
+
+        const count = this.currentCertifications.size;
+        counter.textContent = `${count} certification${count !== 1 ? 's' : ''} added`;
     },
 
     // Update form progress

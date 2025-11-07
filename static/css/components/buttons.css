@@ -296,3 +296,50 @@
   color: var(--secondary-color);
   text-decoration: none;
 }
+
+/* Mobile Button Styles */
+@media (max-width: 768px) {
+  .btn {
+    padding: 0.75rem 1.25rem;
+    font-size: 1rem;
+    min-height: 44px; /* Minimum touch target size */
+  }
+  
+  .btn-sm {
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+    min-height: 40px;
+  }
+  
+  .btn-lg {
+    padding: 1rem 1.5rem;
+    font-size: 1.1rem;
+    min-height: 48px;
+  }
+  
+  .floating-sidebar-toggle {
+    width: 48px;
+    height: 48px;
+    font-size: 1.2rem;
+  }
+}
+
+@media (max-width: 576px) {
+  .btn {
+    padding: 0.75rem 1rem;
+    font-size: 0.95rem;
+  }
+  
+  /* Stack buttons vertically on very small screens */
+  .btn-group-mobile {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    width: 100%;
+  }
+  
+  .btn-group-mobile .btn {
+    width: 100%;
+    justify-content: center;
+  }
+}

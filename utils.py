@@ -1,14 +1,12 @@
-import re
+﻿import re
 import os
 import json
 import spacy
-import docx2txt
-import PyPDF2
 import nltk
+import pandas as pd
 from typing import List, Dict, Optional, Any, Tuple
 from pathlib import Path
 from datetime import datetime
-from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 import logging
 import numpy as np
@@ -54,10 +52,12 @@ class SemanticAnalyzer:
         # Initialize models
         try:
             # Use sentence-transformers for better semantic similarity
-            self.sentence_model = SentenceTransformer('all-MiniLM-L6-v2')
+            # Temporarily disabled to avoid network issues during testing
+            # self.sentence_model = SentenceTransformer('all-MiniLM-L6-v2')
+            self.sentence_model = None  # Temporary disable
             
             # DistilBERT for specific NLP tasks
-            self.tokenizer = DistilBertTokenizer.from_pretrained('distilbert-base-uncased')
+            # self.tokenizer = DistilBertTokenizer.from_pretrained('distilbert-base-uncased')
             self.bert_model = DistilBertModel.from_pretrained('distilbert-base-uncased')
             
             self.logger.info("Semantic models loaded successfully")
@@ -107,1165 +107,977 @@ class SemanticAnalyzer:
             self.logger.error(f"Error calculating semantic similarity: {str(e)}")
             return 0.0
     
-    def find_semantic_skills(self, text: str, skill_list: List[str], threshold: float = 0.6) -> List[Tuple[str, float]]:
-        """Find skills in text using semantic similarity instead of exact matching."""
-        if self.sentence_model is None:
-            return []
-            
-        try:
-            found_skills = []
-            text_lower = text.lower()
-            
-            # Get embeddings for the entire text
-            text_embedding = self.sentence_model.encode([text_lower])
-            
-            # Check each skill and its synonyms
-            for skill in skill_list:
-                skill_variants = [skill.lower()]
-                
-                # Add synonyms if available
-                if skill.lower() in self.skill_synonyms:
-                    skill_variants.extend(self.skill_synonyms[skill.lower()])
-                
-                max_similarity = 0.0
-                best_match = skill
-                
-                # Check each variant
-                for variant in skill_variants:
-                    # Direct text search first
-                    if variant in text_lower:
-                        found_skills.append((skill, 1.0))
-                        max_similarity = 1.0
-                        break
-                    
-                    # Semantic similarity
-                    variant_embedding = self.sentence_model.encode([variant])
-                    similarity = cosine_similarity(text_embedding, variant_embedding)[0][0]
-                    
-                    if similarity > max_similarity:
-                        max_similarity = similarity
-                        best_match = skill
-                
-                # Add skill if similarity is above threshold
-                if max_similarity >= threshold and max_similarity < 1.0:
-                    found_skills.append((best_match, max_similarity))
-            
-            # Sort by similarity score
-            found_skills.sort(key=lambda x: x[1], reverse=True)
-            return found_skills
-            
-        except Exception as e:
-            self.logger.error(f"Error finding semantic skills: {str(e)}")
-            return []
+  
+class PersonalDataSheetProcessor:
+    """
+    Specialized processor for Personal Data Sheets (PDS) with different scoring criteria
+    and evaluation methods compared to traditional resumes.
+    """
     
-    def extract_semantic_context(self, text: str, target_skills: List[str]) -> Dict[str, Any]:
-        """Extract context around skills to understand experience level and relevance."""
-        if self.sentence_model is None:
-            return {}
-            
-        try:
-            sentences = nltk.sent_tokenize(text)
-            context_info = {}
-            
-            for skill in target_skills:
-                skill_contexts = []
-                
-                for sentence in sentences:
-                    similarity = self.semantic_similarity(sentence.lower(), skill.lower())
-                    if similarity > 0.3:  # Lower threshold for context
-                        # Extract experience indicators
-                        experience_level = self._extract_experience_level(sentence)
-                        context_info[skill] = {
-                            'context': sentence,
-                            'similarity': similarity,
-                            'experience_level': experience_level
-                        }
-                        skill_contexts.append({
-                            'text': sentence,
-                            'similarity': similarity,
-                            'experience': experience_level
-                        })
-                
-                if skill_contexts:
-                    # Get the best context
-                    best_context = max(skill_contexts, key=lambda x: x['similarity'])
-                    context_info[skill] = best_context
-            
-            return context_info
-            
-        except Exception as e:
-            self.logger.error(f"Error extracting semantic context: {str(e)}")
-            return {}
-    
-    def _extract_experience_level(self, text: str) -> str:
-        """Extract experience level indicators from text."""
-        text_lower = text.lower()
-        
-        # Experience level indicators
-        expert_indicators = ['expert', 'senior', 'lead', 'architect', 'advanced', 'extensive']
-        intermediate_indicators = ['experienced', 'proficient', 'skilled', 'intermediate']
-        beginner_indicators = ['beginner', 'basic', 'junior', 'entry', 'learning', 'familiar']
-        
-        for indicator in expert_indicators:
-            if indicator in text_lower:
-                return 'expert'
-        
-        for indicator in intermediate_indicators:
-            if indicator in text_lower:
-                return 'intermediate'
-                
-        for indicator in beginner_indicators:
-            if indicator in text_lower:
-                return 'beginner'
-        
-        # Look for years of experience
-        years_match = re.search(r'(\d+)\s*(?:years?|yrs?)', text_lower)
-        if years_match:
-            years = int(years_match.group(1))
-            if years >= 5:
-                return 'expert'
-            elif years >= 2:
-                return 'intermediate'
-            else:
-                return 'beginner'
-        
-        return 'unknown'
-    
-    def semantic_job_matching(self, resume_text: str, job_requirements: str) -> Dict[str, Any]:
-        """Advanced job matching using semantic understanding."""
-        if self.sentence_model is None:
-            return {'error': 'Semantic models not available'}
-            
-        try:
-            # Break down job requirements into components
-            job_sentences = nltk.sent_tokenize(job_requirements)
-            resume_sentences = nltk.sent_tokenize(resume_text)
-            
-            # Get embeddings for all sentences
-            all_sentences = job_sentences + resume_sentences
-            embeddings = self.sentence_model.encode(all_sentences)
-            
-            job_embeddings = embeddings[:len(job_sentences)]
-            resume_embeddings = embeddings[len(job_sentences):]
-            
-            # Calculate similarity matrix
-            similarity_matrix = cosine_similarity(job_embeddings, resume_embeddings)
-            
-            # Find best matches for each job requirement
-            matches = []
-            for i, job_sentence in enumerate(job_sentences):
-                best_match_idx = np.argmax(similarity_matrix[i])
-                best_similarity = similarity_matrix[i][best_match_idx]
-                
-                if best_similarity > 0.3:  # Minimum threshold
-                    matches.append({
-                        'requirement': job_sentence,
-                        'matched_text': resume_sentences[best_match_idx],
-                        'similarity': float(best_similarity)
-                    })
-            
-            # Calculate overall match score
-            if matches:
-                overall_score = np.mean([match['similarity'] for match in matches])
-                coverage = len(matches) / len(job_sentences)
-            else:
-                overall_score = 0.0
-                coverage = 0.0
-            
-            return {
-                'overall_score': float(overall_score),
-                'coverage': float(coverage),
-                'detailed_matches': matches,
-                'total_requirements': len(job_sentences),
-                'matched_requirements': len(matches)
-            }
-            
-        except Exception as e:
-            self.logger.error(f"Error in semantic job matching: {str(e)}")
-            return {'error': str(e)}
-
-class ResumeProcessor:
     def __init__(self):
         self.logger = logging.getLogger(__name__)
         
         # Initialize semantic analyzer
         self.semantic_analyzer = SemanticAnalyzer()
         
-        # Common skills dictionary
-        self.skills_dict = {
-            'programming_languages': [
-                'python', 'java', 'javascript', 'c++', 'c#', 'ruby', 'php',
-                'swift', 'kotlin', 'go', 'rust', 'typescript'
-            ],
-            'web_technologies': [
-                'html', 'css', 'react', 'angular', 'vue', 'node.js', 'django',
-                'flask', 'spring', 'asp.net', 'express'
-            ],
-            'databases': [
-                'sql', 'mysql', 'postgresql', 'mongodb', 'oracle', 'redis',
-                'elasticsearch', 'cassandra'
-            ],
-            'cloud_platforms': [
-                'aws', 'azure', 'gcp', 'docker', 'kubernetes', 'terraform',
-                'jenkins', 'circleci'
-            ],
-            'data_science': [
-                'machine learning', 'deep learning', 'neural networks', 'nlp',
-                'computer vision', 'pandas', 'numpy', 'scikit-learn', 'tensorflow',
-                'pytorch'
-            ],
-            'soft_skills': [
-                'leadership', 'communication', 'teamwork', 'problem solving',
-                'project management', 'agile', 'scrum'
-            ]
+        self.pds_scoring_criteria = {
+            'education': {
+                'weight': 0.25,
+                'subcriteria': {
+                    'relevance': 0.4,
+                    'level': 0.3,
+                    'institution': 0.2,
+                    'grades': 0.1
+                }
+            },
+            'experience': {
+                'weight': 0.30,
+                'subcriteria': {
+                    'relevance': 0.5,
+                    'duration': 0.3,
+                    'responsibilities': 0.2
+                }
+            },
+            'skills': {
+                'weight': 0.20,
+                'subcriteria': {
+                    'technical_match': 0.6,
+                    'certifications': 0.4
+                }
+            },
+            'personal_attributes': {
+                'weight': 0.15,
+                'subcriteria': {
+                    'eligibility': 0.5,
+                    'awards': 0.3,
+                    'training': 0.2
+                }
+            },
+            'additional_qualifications': {
+                'weight': 0.10,
+                'subcriteria': {
+                    'languages': 0.4,
+                    'licenses': 0.3,
+                    'volunteer_work': 0.3
+                }
+            }
+        }
+    
+    
+    def extract_pds_data(self, file_path):
+        """Extract PDS data using ImprovedPDSExtractor - main extraction method"""
+        try:
+            logger = self.logger
+            logger.info(f"🔍 Extracting PDS data using ImprovedPDSExtractor: {file_path}")
+            
+            # Use the advanced ImprovedPDSExtractor
+            from improved_pds_extractor import ImprovedPDSExtractor
+            extractor = ImprovedPDSExtractor()
+            
+            # Extract structured data
+            extracted_data = extractor.extract_pds_data(file_path)
+            
+            if extracted_data and len(extracted_data) > 0:
+                logger.info(f"✅ PDS extraction completed successfully using ImprovedPDSExtractor")
+                logger.info(f"📊 Sections extracted: {list(extracted_data.keys())}")
+                
+                # Log extraction quality
+                if extractor.errors:
+                    logger.warning(f"⚠️ Extraction errors: {len(extractor.errors)}")
+                    for error in extractor.errors:
+                        logger.warning(f"   - {error}")
+                        
+                if extractor.warnings:
+                    logger.info(f"ℹ️ Extraction warnings: {len(extractor.warnings)}")
+                    
+                return extracted_data
+            else:
+                logger.error("❌ ImprovedPDSExtractor returned empty data")
+                return {}
+            
+        except Exception as e:
+            logger.error(f"Error extracting PDS data with ImprovedPDSExtractor: {str(e)}")
+            import traceback
+            traceback.print_exc()
+            return {}
+
+    def _extract_education_from_excel(self, df):
+        """Extract educational background from Excel DataFrame"""
+        education_data = []
+        try:
+            # Look for education section markers
+            for idx, row in df.iterrows():
+                row_str = ' '.join([str(cell) for cell in row if pd.notna(cell)]).upper()
+                
+                if any(marker in row_str for marker in ['EDUCATIONAL BACKGROUND', 'EDUCATION', 'TERTIARY', 'SECONDARY', 'PRIMARY']):
+                    # Found education section, extract data from following rows
+                    for i in range(idx + 1, min(idx + 10, len(df))):
+                        edu_row = df.iloc[i]
+                        edu_values = [str(cell) for cell in edu_row if pd.notna(cell) and str(cell).strip() != '']
+                        
+                        if len(edu_values) >= 3:
+                            education_data.append({
+                                'level': edu_values[0] if len(edu_values) > 0 else 'N/A',
+                                'school': edu_values[1] if len(edu_values) > 1 else 'N/A',
+                                'degree_course': edu_values[2] if len(edu_values) > 2 else 'N/A',
+                                'year_graduated': edu_values[3] if len(edu_values) > 3 else 'N/A',
+                                'honors': edu_values[4] if len(edu_values) > 4 else 'N/A'
+                            })
+                    break
+        except Exception as e:
+            self.logger.warning(f"Error extracting education: {e}")
+        
+        return education_data
+
+    def _extract_work_experience_from_excel(self, df):
+        """Extract work experience from Excel DataFrame"""
+        experience_data = []
+        try:
+            # Look for work experience section
+            for idx, row in df.iterrows():
+                row_str = ' '.join([str(cell) for cell in row if pd.notna(cell)]).upper()
+                
+                if any(marker in row_str for marker in ['WORK EXPERIENCE', 'EMPLOYMENT', 'POSITION', 'COMPANY']):
+                    # Extract work experience data
+                    for i in range(idx + 1, min(idx + 15, len(df))):
+                        exp_row = df.iloc[i]
+                        exp_values = [str(cell) for cell in exp_row if pd.notna(cell) and str(cell).strip() != '']
+                        
+                        if len(exp_values) >= 3:
+                            experience_data.append({
+                                'position': exp_values[0] if len(exp_values) > 0 else 'N/A',
+                                'company': exp_values[1] if len(exp_values) > 1 else 'N/A',
+                                'date_from': exp_values[2] if len(exp_values) > 2 else 'N/A',
+                                'date_to': exp_values[3] if len(exp_values) > 3 else 'N/A',
+                                'salary': exp_values[4] if len(exp_values) > 4 else 'N/A',
+                                'grade': exp_values[5] if len(exp_values) > 5 else 'N/A'
+                            })
+                    break
+        except Exception as e:
+            self.logger.warning(f"Error extracting work experience: {e}")
+        
+        return experience_data
+
+    def _extract_training_from_excel(self, df):
+        """Extract training and development from Excel DataFrame"""
+        training_data = []
+        try:
+            # Look for training/learning development section
+            for idx, row in df.iterrows():
+                row_str = ' '.join([str(cell) for cell in row if pd.notna(cell)]).upper()
+                
+                if any(marker in row_str for marker in ['LEARNING AND DEVELOPMENT', 'TRAINING', 'SEMINAR', 'WORKSHOP']):
+                    # Extract training data
+                    for i in range(idx + 1, min(idx + 20, len(df))):
+                        train_row = df.iloc[i]
+                        train_values = [str(cell) for cell in train_row if pd.notna(cell) and str(cell).strip() != '']
+                        
+                        if len(train_values) >= 2:
+                            hours = 0
+                            try:
+                                hours = float(train_values[2]) if len(train_values) > 2 else 0
+                            except:
+                                hours = 0
+                            
+                            training_data.append({
+                                'title': train_values[0] if len(train_values) > 0 else 'N/A',
+                                'conductor': train_values[1] if len(train_values) > 1 else 'N/A',
+                                'hours': hours,
+                                'type': train_values[3] if len(train_values) > 3 else 'N/A'
+                            })
+                    break
+        except Exception as e:
+            self.logger.warning(f"Error extracting training: {e}")
+        
+        return training_data
+
+    def _extract_eligibility_from_excel(self, df):
+        """Extract civil service eligibility from Excel DataFrame"""
+        eligibility_data = []
+        try:
+            # Look for eligibility section
+            for idx, row in df.iterrows():
+                row_str = ' '.join([str(cell) for cell in row if pd.notna(cell)]).upper()
+                
+                if any(marker in row_str for marker in ['CIVIL SERVICE ELIGIBILITY', 'ELIGIBILITY', 'CAREER SERVICE']):
+                    # Extract eligibility data
+                    for i in range(idx + 1, min(idx + 10, len(df))):
+                        elig_row = df.iloc[i]
+                        elig_values = [str(cell) for cell in elig_row if pd.notna(cell) and str(cell).strip() != '']
+                        
+                        if len(elig_values) >= 2:
+                            eligibility_data.append({
+                                'eligibility': elig_values[0] if len(elig_values) > 0 else 'N/A',
+                                'rating': elig_values[1] if len(elig_values) > 1 else 'N/A',
+                                'date_exam': elig_values[2] if len(elig_values) > 2 else 'N/A',
+                                'place_exam': elig_values[3] if len(elig_values) > 3 else 'N/A'
+                            })
+                    break
+        except Exception as e:
+            self.logger.warning(f"Error extracting eligibility: {e}")
+        
+        return eligibility_data
+
+    def process_excel_pds_file(self, file_path, filename, job=None):
+        """Process Excel PDS file using ImprovedPDSExtractor and return formatted candidate data"""
+        try:
+            # Extract PDS data using ImprovedPDSExtractor
+            extracted_data = self.extract_pds_data(file_path)
+            
+            if extracted_data:
+                # Convert to assessment format using the improved converter
+                from improved_pds_converter import convert_improved_pds_to_assessment_format
+                converted_data = convert_improved_pds_to_assessment_format(extracted_data)
+                
+                # Get basic info
+                basic_info = converted_data.get('basic_info', {})
+                
+                # Return properly formatted candidate data that matches what create_candidate expects
+                # Note: scores will be calculated by assessment engines in app.py
+                return {
+                    'name': basic_info.get('name', 'Unknown Candidate'),
+                    'email': basic_info.get('email', ''),
+                    'phone': basic_info.get('phone', ''),
+                    'category': 'PDS',
+                    'skills': [],
+                    'education': converted_data.get('education', []),
+                    'experience': converted_data.get('experience', []),
+                    'status': 'new',
+                    'score': 0,  # Will be calculated by assessment engines
+                    'processing_type': 'pds',
+                    'job_id': job.get('id') if job else None,
+                    # PDS-specific fields - store ALL the structured data
+                    'pds_data': converted_data,
+                    'eligibility': converted_data.get('eligibility', []),
+                    'training': converted_data.get('training', []),
+                    'volunteer_work': converted_data.get('volunteer_work', []),
+                    'personal_references': extracted_data.get('other_information', {}).get('references', []),
+                    'government_ids': basic_info.get('government_ids', {}),
+                    'ocr_confidence': None,
+                    'pds_extracted_data': extracted_data,  # Store raw extracted data
+                    'total_education_entries': len(converted_data.get('education', [])),
+                    'total_work_positions': len(converted_data.get('experience', [])),
+                    'extraction_status': 'completed',
+                    'uploaded_filename': filename,
+                    'latest_total_score': 0,  # Will be calculated by assessment engines
+                    'latest_percentage_score': 0,  # Will be calculated by assessment engines
+                    'latest_recommendation': 'Pending Assessment',
+                    'percentage_score': 0  # Will be calculated by assessment engines
+                }
+            else:
+                self.logger.warning(f"No data extracted from Excel file: {filename}")
+                return None
+                
+        except Exception as e:
+            self.logger.error(f"Error processing Excel PDS file {filename}: {e}")
+            import traceback
+            traceback.print_exc()
+            return None
+
+    def _extract_voluntary_work_from_excel(self, df):
+        """Extract voluntary work from Excel DataFrame"""
+        voluntary_data = []
+        try:
+            # Look for voluntary work section
+            for idx, row in df.iterrows():
+                row_str = ' '.join([str(cell) for cell in row if pd.notna(cell)]).upper()
+                
+                if any(marker in row_str for marker in ['VOLUNTARY WORK', 'VOLUNTEER', 'COMMUNITY SERVICE']):
+                    # Extract voluntary work data
+                    for i in range(idx + 1, min(idx + 10, len(df))):
+                        vol_row = df.iloc[i]
+                        vol_values = [str(cell) for cell in vol_row if pd.notna(cell) and str(cell).strip() != '']
+                        
+                        if len(vol_values) >= 2:
+                            hours = 0
+                            try:
+                                hours = float(vol_values[2]) if len(vol_values) > 2 else 0
+                            except:
+                                hours = 0
+                            
+                            voluntary_data.append({
+                                'organization': vol_values[0] if len(vol_values) > 0 else 'N/A',
+                                'position': vol_values[1] if len(vol_values) > 1 else 'N/A',
+                                'hours': hours
+                            })
+                    break
+        except Exception as e:
+            self.logger.warning(f"Error extracting voluntary work: {e}")
+        
+        return voluntary_data
+
+    def process_pds_candidate(self, content):
+        """Process PDS candidate and extract relevant information."""
+        try:
+            # Extract basic information
+            candidate_info = self.extract_basic_info(content)
+            
+            # Extract education with structured format
+            education = self.extract_education_pds(content)
+            
+            # Extract work experience
+            experience = self.extract_experience_pds(content)
+            
+            # Extract skills and competencies
+            skills = self.extract_skills_pds(content)
+            
+            return {
+                'basic_info': candidate_info,
+                'education': education,
+                'experience': experience,
+                'skills': skills,
+                'raw_content': content
+            }
+            
+        except Exception as e:
+            self.logger.error(f"Error processing PDS candidate: {str(e)}")
+            return {}
+    
+    def convert_pds_to_candidate_format(self, pds_data):
+        """Convert PDS data to standardized candidate format."""
+        try:
+            basic_info = pds_data.get('basic_info', {})
+            education = pds_data.get('education', [])
+            experience = pds_data.get('experience', [])
+            skills = pds_data.get('skills', [])
+            
+            # Format education for display
+            education_text = ""
+            if education:
+                for edu in education:
+                    if isinstance(edu, dict):
+                        degree = edu.get('degree', '')
+                        school = edu.get('school', '')
+                        year = edu.get('year', '')
+                        education_text += f"{degree} from {school} ({year})\n"
+                    else:
+                        education_text += f"{edu}\n"
+            
+            # Format experience for display
+            experience_text = ""
+            if experience:
+                for exp in experience:
+                    if isinstance(exp, dict):
+                        position = exp.get('position', '')
+                        company = exp.get('company', '')
+                        duration = exp.get('duration', '')
+                        experience_text += f"{position} at {company} ({duration})\n"
+                    else:
+                        experience_text += f"{exp}\n"
+            
+            # Format skills
+            skills_text = ", ".join(skills) if isinstance(skills, list) else str(skills)
+            
+            return {
+                'name': basic_info.get('name', 'N/A'),
+                'email': basic_info.get('email', 'N/A'),
+                'phone': basic_info.get('phone', 'N/A'),
+                'education': education_text.strip(),
+                'experience': experience_text.strip(),
+                'skills': skills_text,
+                'additional_info': basic_info
+            }
+            
+        except Exception as e:
+            self.logger.error(f"Error converting PDS to candidate format: {str(e)}")
+            return {}
+    
+    def preprocess_text(self, text):
+        """Preprocess text for analysis."""
+        if not text:
+            return ""
+        
+        # Convert to lowercase and remove extra whitespace
+        text = re.sub(r'\s+', ' ', text.lower().strip())
+        
+        # Remove special characters but keep important punctuation
+        text = re.sub(r'[^\w\s\-\+\#\.\@\%]', ' ', text)
+        
+        return text
+
+    
+    def extract_pds_information(self, text: str, filename: str = "") -> Dict[str, Any]:
+        """Extract comprehensive information from a Personal Data Sheet."""
+        try:
+            # Check if this is a Philippine Civil Service Commission format
+            is_csc_format = self._is_csc_format(text)
+            
+            # Basic information
+            basic_info = self.extract_basic_info(text)
+            
+            # Enhanced PDS-specific extraction
+            pds_data = {
+                'filename': filename,
+                'is_csc_format': is_csc_format,
+                'basic_info': basic_info,
+                'personal_information': self.extract_personal_information_pds(text),
+                'family_background': self.extract_family_background(text),
+                'education': self.extract_education_detailed(text),
+                'experience': self.extract_experience_detailed(text),
+                'skills': self.extract_skills_categorized(text),
+                'certifications': self.extract_certifications(text),
+                'training': self.extract_training_seminars(text),
+                'awards': self.extract_awards_recognition(text),
+                'eligibility': self.extract_civil_service_eligibility(text),
+                'languages': self.extract_language_proficiency(text),
+                'licenses': self.extract_licenses(text),
+                'volunteer_work': self.extract_volunteer_work(text),
+                'personal_references': self.extract_references(text),
+                'government_id': self.extract_government_ids(text),
+                'other_information': self.extract_other_information(text)
+            }
+            
+            # Apply CSC-specific parsing if detected
+            if is_csc_format:
+                pds_data = self._enhance_csc_parsing(pds_data, text)
+            
+            return pds_data
+            
+        except Exception as e:
+            self.logger.error(f"Error extracting PDS information: {str(e)}")
+            return {'error': str(e)}
+    
+    def extract_skills_categorized(self, text: str) -> Dict[str, List[str]]:
+        """Extract skills and categorize them for PDS analysis."""
+        # Use the parent class's extract_skills method
+        all_skills = self.extract_skills(text)
+        
+        # Categorize skills
+        categorized = {
+            'technical': [],
+            'soft': [],
+            'language': [],
+            'certifications': []
         }
         
-        # Load skills database
-        self.skills_db = self._load_skills_database()
-        self.education_keywords = self._load_education_keywords()
+        # Technical skills keywords
+        technical_keywords = ['python', 'java', 'javascript', 'sql', 'html', 'css', 'react', 'angular', 'vue', 
+                            'node.js', 'django', 'flask', 'spring', 'docker', 'kubernetes', 'aws', 'azure', 
+                            'git', 'linux', 'windows', 'mysql', 'postgresql', 'mongodb', 'excel', 'powerpoint',
+                            'photoshop', 'autocad', 'microsoft office', 'data analysis', 'machine learning']
         
-    def _load_skills_database(self) -> List[str]:
-        """Load and return list of technical skills."""
-        skills = {
-            # Programming Languages
-            'python', 'java', 'javascript', 'typescript', 'c++', 'c#', 'ruby', 'php', 'swift', 'kotlin',
-            'go', 'rust', 'scala', 'perl', 'r', 'matlab', 'sql', 'bash', 'shell',
-            
-            # Web Development
-            'html', 'css', 'react', 'angular', 'vue', 'node.js', 'express', 'django', 'flask',
-            'spring', 'asp.net', 'jquery', 'bootstrap', 'sass', 'less', 'webpack', 'gatsby',
-            'next.js', 'graphql', 'rest api', 'websocket',
-            
-            # Databases
-            'mysql', 'postgresql', 'mongodb', 'redis', 'elasticsearch', 'cassandra', 'oracle',
-            'sql server', 'sqlite', 'dynamodb', 'firebase',
-            
-            # Cloud & DevOps
-            'aws', 'azure', 'gcp', 'docker', 'kubernetes', 'jenkins', 'gitlab', 'terraform',
-            'ansible', 'puppet', 'chef', 'prometheus', 'grafana', 'elk stack',
-            
-            # AI/ML
-            'machine learning', 'deep learning', 'tensorflow', 'pytorch', 'keras', 'scikit-learn',
-            'pandas', 'numpy', 'scipy', 'opencv', 'nlp', 'computer vision', 'neural networks',
-            
-            # Mobile Development
-            'android', 'ios', 'react native', 'flutter', 'xamarin', 'ionic', 'swift', 'objective-c',
-            
-            # Tools & Others
-            'git', 'svn', 'jira', 'confluence', 'slack', 'trello', 'agile', 'scrum', 'kanban',
-            'tdd', 'ci/cd', 'unit testing', 'selenium', 'postman', 'swagger',
-            
-            # Soft Skills
-            'leadership', 'communication', 'teamwork', 'problem solving', 'analytical',
-            'project management', 'time management', 'critical thinking', 'creativity',
-            'adaptability', 'organization', 'presentation', 'negotiation'
-        }
-        return sorted(list(skills))
+        # Soft skills keywords
+        soft_keywords = ['leadership', 'communication', 'teamwork', 'problem solving', 'time management',
+                        'project management', 'analytical', 'creative', 'adaptable', 'organized']
         
-    def _load_education_keywords(self) -> List[str]:
-        """Load and return list of education-related keywords."""
-        return [
-            # Degrees
-            'bachelor', 'master', 'phd', 'doctorate', 'bs', 'ba', 'btech', 'mtech', 'msc',
-            'bsc', 'mba', 'associate degree',
+        # Language keywords
+        language_keywords = ['english', 'filipino', 'tagalog', 'spanish', 'chinese', 'japanese', 'korean']
+        
+        for skill in all_skills:
+            skill_lower = skill.lower()
             
-            # Fields
-            'computer science', 'information technology', 'engineering', 'business',
-            'mathematics', 'physics', 'data science', 'artificial intelligence',
-            'machine learning', 'software engineering', 'electrical engineering',
-            
-            # Institutions
-            'university', 'college', 'institute', 'school',
-            
-            # Academic Terms
-            'major', 'minor', 'concentration', 'specialization', 'thesis',
-            'dissertation', 'research', 'academic', 'gpa', 'honors', 'dean\'s list'
+            # Check if it's a technical skill
+            if any(tech in skill_lower for tech in technical_keywords):
+                categorized['technical'].append(skill)
+            # Check if it's a soft skill
+            elif any(soft in skill_lower for soft in soft_keywords):
+                categorized['soft'].append(skill)
+            # Check if it's a language skill
+            elif any(lang in skill_lower for lang in language_keywords):
+                categorized['language'].append(skill)
+            else:
+                # Default to technical if uncertain
+                categorized['technical'].append(skill)
+        
+        return categorized
+    
+    def _is_csc_format(self, text: str) -> bool:
+        """Detect if the PDS follows Philippine Civil Service Commission format."""
+        csc_indicators = [
+            'CS Form No. 212',
+            'Personal Data Sheet',
+            'Civil Service Commission',
+            'Republic of the Philippines',
+            'PERSONAL INFORMATION',
+            'FAMILY BACKGROUND',
+            'EDUCATIONAL BACKGROUND',
+            'CIVIL SERVICE ELIGIBILITY',
+            'WORK EXPERIENCE',
+            'VOLUNTARY WORK',
+            'LEARNING AND DEVELOPMENT',
+            'OTHER INFORMATION'
         ]
         
-    def clean_text(self, text: str) -> str:
-        """Clean and normalize text."""
-        # Convert to lowercase
-        text = text.lower()
-        
-        # Remove special characters and extra whitespace
-        text = re.sub(r'[^\w\s]', ' ', text)
-        text = re.sub(r'\s+', ' ', text)
-        
-        # Remove URLs
-        text = re.sub(r'http\S+|www.\S+', '', text)
-        
-        # Remove email addresses for cleaning (we extract them separately)
-        text = re.sub(r'\S+@\S+', '', text)
-        
-        # Remove phone numbers
-        text = re.sub(r'\b(?:\+\d{1,3}[-.]?)?\(?\d{3}\)?[-.]?\d{3}[-.]?\d{4}\b', '', text)
-        
-        return text.strip()
-        
-    def extract_text_from_file(self, file) -> str:
-        """Extract text from various file formats."""
-        if hasattr(file, 'filename'):
-            # File object
-            filename = file.filename.lower()
-        else:
-            # File path string
-            filename = str(file).lower()
-        
-        try:
-            if filename.endswith('.pdf'):
-                return self._extract_from_pdf(file)
-            elif filename.endswith('.docx'):
-                return self._extract_from_docx(file)
-            elif filename.endswith('.txt'):
-                if hasattr(file, 'read'):
-                    return file.read().decode('utf-8')
-                else:
-                    with open(file, 'r', encoding='utf-8') as f:
-                        return f.read()
-            else:
-                raise ValueError(f"Unsupported file format: {filename}")
-        except Exception as e:
-            self.logger.error(f"Error extracting text from {filename}: {str(e)}")
-            raise
-            
-    def _extract_from_pdf(self, file) -> str:
-        """Extract text from PDF file."""
-        try:
-            if hasattr(file, 'read'):
-                # File object
-                pdf_reader = PyPDF2.PdfReader(file)
-            else:
-                # File path
-                with open(file, 'rb') as f:
-                    pdf_reader = PyPDF2.PdfReader(f)
-            
-            text = ""
-            for page in pdf_reader.pages:
-                text += page.extract_text() + "\n"
-            return text
-        except Exception as e:
-            self.logger.error(f"Error extracting text from PDF: {str(e)}")
-            raise
-            
-    def _extract_from_docx(self, file) -> str:
-        """Extract text from DOCX file."""
-        try:
-            if hasattr(file, 'read'):
-                # File object - save temporarily
-                import tempfile
-                with tempfile.NamedTemporaryFile(delete=False, suffix='.docx') as tmp:
-                    file.seek(0)  # Ensure we're at the beginning
-                    tmp.write(file.read())
-                    tmp.flush()
-                    text = docx2txt.process(tmp.name)
-                    os.unlink(tmp.name)  # Clean up
-                return text
-            else:
-                # File path
-                return docx2txt.process(file)
-        except Exception as e:
-            self.logger.error(f"Error extracting text from DOCX: {str(e)}")
-            raise
-            
-    def extract_contact_info(self, text: str) -> Dict[str, str]:
-        """Extract contact information from text."""
-        contact_info = {
-            'name': '',
-            'email': '',
-            'phone': '',
-            'linkedin': '',
-            'github': ''
-        }
-        
-        # Extract email
-        email_pattern = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'
-        email_match = re.search(email_pattern, text)
-        if email_match:
-            contact_info['email'] = email_match.group()
-        
-        # Extract phone number
-        phone_pattern = r'\b(?:\+\d{1,3}[-.]?)?\(?\d{3}\)?[-.]?\d{3}[-.]?\d{4}\b'
-        phone_match = re.search(phone_pattern, text)
-        if phone_match:
-            contact_info['phone'] = phone_match.group()
-            
-        # Extract LinkedIn
-        linkedin_pattern = r'linkedin\.com/in/[\w-]+|linkedin\.com/pub/[\w-]+/[\w]+/[\w]+/[\w]+'
-        linkedin_match = re.search(linkedin_pattern, text.lower())
-        if linkedin_match:
-            contact_info['linkedin'] = linkedin_match.group()
-            
-        # Extract GitHub
-        github_pattern = r'github\.com/[\w-]+'
-        github_match = re.search(github_pattern, text.lower())
-        if github_match:
-            contact_info['github'] = github_match.group()
-        
-        # Extract name using NER
-        doc = nlp(text[:1000])  # Process first 1000 chars for efficiency
-        for ent in doc.ents:
-            if ent.label_ == 'PERSON':
-                contact_info['name'] = ent.text
-                break
-        
-        return contact_info
-        
-    def extract_skills(self, text: str) -> List[str]:
-        """Extract skills from text using both traditional and semantic methods."""
-        text_lower = text.lower()
-        found_skills = set()
-        
-        # Traditional keyword-based extraction
-        all_skills = []
-        for category, skills in self.skills_dict.items():
-            all_skills.extend(skills)
-        all_skills.extend(self.skills_db)
-        unique_skills = list(set(all_skills))
-        
-        # Traditional exact matching
-        for skill in unique_skills:
-            if re.search(r'\b' + re.escape(skill.lower()) + r'\b', text_lower):
-                found_skills.add(skill)
-        
-        # Enhanced semantic skill extraction
-        try:
-            semantic_skills = self.semantic_analyzer.find_semantic_skills(
-                text, unique_skills, threshold=0.6
-            )
-            
-            # Add semantically found skills
-            for skill, confidence in semantic_skills:
-                if confidence > 0.6:  # High confidence threshold
-                    found_skills.add(skill)
-                    
-        except Exception as e:
-            self.logger.error(f"Error in semantic skill extraction: {str(e)}")
-        
-        return sorted(list(found_skills))
+        matches = sum(1 for indicator in csc_indicators if indicator.lower() in text.lower())
+        return matches >= 3  # If at least 3 indicators are found
     
-    def extract_skills_with_context(self, text: str) -> Dict[str, Any]:
-        """Extract skills with semantic context and confidence scores."""
-        try:
-            # Get basic skills
-            skills = self.extract_skills(text)
+    
+    def extract_education_detailed(self, text: str) -> List[Dict[str, Any]]:
+        """Extract detailed education information specific to PDS format."""
+        education_list = []
+        
+        # Enhanced patterns for PDS education format
+        education_patterns = [
+            # Standard format: Degree, Institution, Year, GPA/Honors
+            r'(?:Bachelor|Master|PhD|Doctorate|BS|BA|MS|MA|BSc|MSc|BSIT|BSCS|MIT|MBA)\s+(?:of|in|degree in)?\s*([^,\n]+),?\s*([^,\n]+),?\s*(\d{4})\s*(?:GPA[:\s]*([0-9.]+)|([^,\n]*honors?))?',
             
-            # Get semantic context for each skill
-            context_info = self.semantic_analyzer.extract_semantic_context(text, skills)
+            # Alternative format with dates
+            r'([^,\n]+)\s*-\s*([^,\n]+)\s*\((\d{4})\s*-?\s*(\d{4})?\)',
             
-            # Combine traditional and semantic results
-            enhanced_skills = {}
-            for skill in skills:
-                enhanced_skills[skill] = {
-                    'found': True,
-                    'confidence': 1.0,  # High confidence for exact matches
-                    'context': context_info.get(skill, {}),
-                    'experience_level': context_info.get(skill, {}).get('experience', 'unknown')
-                }
-            
-            # Add semantically found skills with lower confidence
-            semantic_skills = self.semantic_analyzer.find_semantic_skills(
-                text, self.skills_db, threshold=0.4
-            )
-            
-            for skill, confidence in semantic_skills:
-                if skill not in enhanced_skills and confidence > 0.4:
-                    enhanced_skills[skill] = {
-                        'found': True,
-                        'confidence': confidence,
-                        'context': context_info.get(skill, {}),
-                        'experience_level': context_info.get(skill, {}).get('experience', 'unknown')
+            # Simple format
+            r'Education[:\s]*([^,\n]+),?\s*([^,\n]+),?\s*(\d{4})'
+        ]
+        
+        for pattern in education_patterns:
+            matches = re.findall(pattern, text, re.IGNORECASE | re.MULTILINE)
+            for match in matches:
+                if len(match) >= 3:
+                    education_entry = {
+                        'degree': match[0].strip(),
+                        'institution': match[1].strip(),
+                        'year': match[2],
+                        'gpa': match[3] if len(match) > 3 and match[3] else None,
+                        'honors': match[4] if len(match) > 4 and match[4] else None
                     }
+                    education_list.append(education_entry)
+        
+        return education_list
+    
+    def extract_experience_detailed(self, text: str) -> List[Dict[str, Any]]:
+        """Extract detailed work experience information from PDS."""
+        experience_list = []
+        
+        # Enhanced patterns for work experience
+        experience_patterns = [
+            # Standard format: Position, Company, Start-End dates
+            r'(?:Position|Job Title|Work)\s*:?\s*([^,\n]+),?\s*([^,\n]+),?\s*(\d{4})\s*-\s*(\d{4}|present|current)',
             
-            return enhanced_skills
+            # Alternative format
+            r'([^,\n]+)\s*-\s*([^,\n]+)\s*\((\d{4})\s*-\s*(\d{4}|present|current)\)',
             
-        except Exception as e:
-            self.logger.error(f"Error extracting skills with context: {str(e)}")
-            return {}
+            # Simple format with company
+            r'([A-Za-z\s]+),\s*([A-Za-z\s&.,]+),?\s*(\d{4})\s*-?\s*(\d{4}|present|current)?'
+        ]
         
-    def extract_education(self, text: str) -> List[Dict[str, str]]:
-        """Extract education information from text."""
-        education = []
+        for pattern in experience_patterns:
+            matches = re.findall(pattern, text, re.IGNORECASE | re.MULTILINE)
+            for match in matches:
+                if len(match) >= 3:
+                    start_year = int(match[2]) if match[2].isdigit() else None
+                    end_year = datetime.now().year if match[3].lower() in ['present', 'current'] else (int(match[3]) if match[3].isdigit() else None)
+                    
+                    experience_entry = {
+                        'position': match[0].strip(),
+                        'company': match[1].strip(),
+                        'start_year': start_year,
+                        'end_year': end_year,
+                        'duration_years': (end_year - start_year) if start_year and end_year else None,
+                        'description': ''  # Could be enhanced to extract job descriptions
+                    }
+                    experience_list.append(experience_entry)
         
-        # Common education keywords
-        edu_keywords = r'\b(bachelor|master|phd|doctorate|bsc|msc|be|btech|mtech)\b'
-        year_pattern = r'\b(19|20)\d{2}\b'
+        return experience_list
+    
+    def extract_certifications(self, text: str) -> List[Dict[str, Any]]:
+        """Extract certifications and professional licenses."""
+        certifications = []
         
-        # Find education sections
-        sentences = nltk.sent_tokenize(text)
-        for sentence in sentences:
-            if re.search(edu_keywords, sentence.lower()):
-                # Extract degree
-                degree_match = re.search(edu_keywords, sentence.lower())
-                degree = degree_match.group() if degree_match else ''
+        # Patterns for certifications
+        cert_patterns = [
+            r'(?:Certification|Certificate|Certified|License)\s*:?\s*([^,\n]+)(?:,\s*(\d{4}|\w+\s+\d{4}))?',
+            r'([A-Z]{2,})\s+(?:Certification|Certificate|Certified)(?:\s*-\s*(\d{4}))?',
+            r'Professional\s+License\s*:?\s*([^,\n]+)'
+        ]
+        
+        for pattern in cert_patterns:
+            matches = re.findall(pattern, text, re.IGNORECASE)
+            for match in matches:
+                cert_name = match[0] if isinstance(match, tuple) else match
+                issue_date = match[1] if isinstance(match, tuple) and len(match) > 1 else None
                 
-                # Extract year
-                year_match = re.search(year_pattern, sentence)
-                year = year_match.group() if year_match else ''
-                
-                if degree:
-                    education.append({
-                        'degree': degree.title(),
-                        'year': year,
-                        'details': sentence.strip()
-                    })
-        
-        return education
-    
-    def extract_basic_info(self, text: str) -> Dict[str, str]:
-        """Extract basic information from resume text."""
-        try:
-            return {
-                'name': self.extract_name(text),
-                'email': self._extract_email(text),
-                'phone': self._extract_phone(text)
-            }
-        except Exception as e:
-            self.logger.error(f"Error extracting basic info: {str(e)}")
-            return {
-                'name': '',
-                'email': '',
-                'phone': ''
-            }
-    
-    def extract_name(self, text: str) -> str:
-        """Extract name from resume text."""
-        try:
-            doc = nlp(text)
-            
-            # Look for PERSON entities in the first few sentences
-            sentences = text.split('\n')[:5]  # Check first 5 lines
-            
-            for sentence in sentences:
-                if len(sentence.strip()) > 3:
-                    doc = nlp(sentence)
-                    for ent in doc.ents:
-                        if ent.label_ == 'PERSON' and len(ent.text.split()) <= 3:
-                            # Clean the name
-                            name = re.sub(r'[^\w\s]', '', ent.text).strip()
-                            if len(name) > 2 and not name.lower() in ['resume', 'cv', 'curriculum']:
-                                return name
-            
-            # Fallback: look for patterns like "Name: John Doe"
-            name_patterns = [
-                r'name\s*:\s*([a-zA-Z\s]+)',
-                r'^([A-Z][a-z]+\s+[A-Z][a-z]+)',
-                r'([A-Z][a-z]+\s+[A-Z]\.\s+[A-Z][a-z]+)'
-            ]
-            
-            for pattern in name_patterns:
-                match = re.search(pattern, text, re.IGNORECASE | re.MULTILINE)
-                if match:
-                    name = match.group(1).strip()
-                    if len(name) > 2:
-                        return name
-            
-            return ''
-        except Exception as e:
-            self.logger.error(f"Error extracting name: {str(e)}")
-            return ''
-    
-    def _extract_email(self, text: str) -> str:
-        """Extract email from text."""
-        try:
-            email_pattern = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'
-            emails = re.findall(email_pattern, text)
-            return emails[0] if emails else ''
-        except Exception as e:
-            self.logger.error(f"Error extracting email: {str(e)}")
-            return ''
-    
-    def _extract_phone(self, text: str) -> str:
-        """Extract phone number from text."""
-        try:
-            # Various phone number patterns
-            phone_patterns = [
-                r'\+\d{1,3}[-.\s]?\(?\d{1,4}\)?[-.\s]?\d{1,4}[-.\s]?\d{1,9}',
-                r'\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}',
-                r'\d{3}[-.\s]?\d{3}[-.\s]?\d{4}'
-            ]
-            
-            for pattern in phone_patterns:
-                phones = re.findall(pattern, text)
-                if phones:
-                    # Clean and return the first phone number
-                    phone = re.sub(r'[^\d+]', '', phones[0])
-                    if len(phone) >= 10:
-                        return phones[0]
-            
-            return ''
-        except Exception as e:
-            self.logger.error(f"Error extracting phone: {str(e)}")
-            return ''
-    
-    def extract_experience(self, text: str) -> List[Dict[str, str]]:
-        """Extract work experience from text."""
-        experience = []
-        
-        # Common experience keywords
-        exp_keywords = r'\b(experience|work|job|position|role|employed)\b'
-        year_pattern = r'\b(19|20)\d{2}\b'
-        duration_pattern = r'\b(\d+)\s*(year|month|yr|mo)s?\b'
-        
-        # Find experience sections
-        sentences = nltk.sent_tokenize(text)
-        for sentence in sentences:
-            if re.search(exp_keywords, sentence.lower()) and len(sentence) > 20:
-                # Extract years
-                years = re.findall(year_pattern, sentence)
-                duration = re.search(duration_pattern, sentence.lower())
-                
-                experience.append({
-                    'description': sentence.strip(),
-                    'years': years,
-                    'duration': duration.group() if duration else ''
+                certifications.append({
+                    'name': cert_name.strip(),
+                    'issue_date': issue_date,
+                    'type': 'certification'
                 })
         
-        return experience[:5]  # Return top 5 experiences
+        return certifications
     
-    def predict_category(self, text: str, vectorizer: TfidfVectorizer, classifier: Any) -> str:
-        """Predict job category from resume text."""
-        try:
-            # Clean and prepare text
-            cleaned_text = self.clean_text(text)
-            
-            # Transform text using vectorizer
-            text_vector = vectorizer.transform([cleaned_text])
-            
-            # Predict category
-            category = classifier.predict(text_vector)[0]
-            return category
-        except Exception as e:
-            self.logger.error(f"Error predicting category: {str(e)}")
-            return "unknown"
+    def extract_civil_service_eligibility(self, text: str) -> List[Dict[str, Any]]:
+        """Extract civil service eligibility information."""
+        eligibility_list = []
         
-    def predict_job_recommendation(self, text: str, vectorizer: TfidfVectorizer, classifier: Any) -> str:
-        """Predict job recommendation from resume text."""
-        try:
-            # Clean and prepare text
-            cleaned_text = self.clean_text(text)
-            
-            # Transform text using vectorizer
-            text_vector = vectorizer.transform([cleaned_text])
-            
-            # Predict job recommendation
-            recommendation = classifier.predict(text_vector)[0]
-            return recommendation
-        except Exception as e:
-            self.logger.error(f"Error predicting job recommendation: {str(e)}")
-            return "unknown"
+        eligibility_patterns = [
+            r'(?:Civil\s+Service|CSE|Career\s+Service)\s+(?:Eligibility|Examination|Exam)\s*:?\s*([^,\n]+)(?:,\s*(\d{4}))?',
+            r'Eligibility\s*:?\s*([^,\n]*(?:Professional|Sub-professional|Career\s+Service)[^,\n]*)',
+            r'(?:Professional|Sub-professional)\s+(?:Board|Examination|Exam)\s*:?\s*([^,\n]+)'
+        ]
+        
+        for pattern in eligibility_patterns:
+            matches = re.findall(pattern, text, re.IGNORECASE)
+            for match in matches:
+                eligibility_name = match[0] if isinstance(match, tuple) else match
+                exam_date = match[1] if isinstance(match, tuple) and len(match) > 1 else None
+                
+                eligibility_list.append({
+                    'type': eligibility_name.strip(),
+                    'date_taken': exam_date,
+                    'status': 'passed'  # Assuming passed if listed
+                })
+        
+        return eligibility_list
     
-    def match_skills_with_requirements(self, resume_skills: List[str], job_requirements: str) -> Dict[str, Any]:
-        """Match resume skills with job requirements using semantic understanding."""
-        # Extract skills from job requirements text (traditional method)
-        job_skills = self.extract_skills(job_requirements)
+    def extract_training_seminars(self, text: str) -> List[Dict[str, Any]]:
+        """Extract training programs and seminars attended."""
+        training_list = []
         
-        # Also try to extract skills from comma-separated requirements
-        if ',' in job_requirements:
-            requirement_parts = [part.strip() for part in job_requirements.split(',')]
-            for part in requirement_parts:
-                part_lower = part.lower()
-                if any(skill.lower() in part_lower for skill in self.skills_db):
-                    job_skills.append(part)
+        training_patterns = [
+            r'(?:Training|Seminar|Workshop|Course)\s*:?\s*([^,\n]+)(?:,\s*([^,\n]+))(?:,\s*(\d{4}|\w+\s+\d{4}))?',
+            r'([^,\n]+)\s+(?:Training|Seminar|Workshop)\s*(?:-\s*([^,\n]+))?(?:,\s*(\d{4}))?'
+        ]
         
-        # Remove duplicates
-        job_skills = list(set(job_skills))
+        for pattern in training_patterns:
+            matches = re.findall(pattern, text, re.IGNORECASE)
+            for match in matches:
+                training_name = match[0].strip()
+                provider = match[1].strip() if len(match) > 1 and match[1] else None
+                date = match[2] if len(match) > 2 and match[2] else None
+                
+                training_list.append({
+                    'name': training_name,
+                    'provider': provider,
+                    'date': date,
+                    'type': 'training'
+                })
         
-        # Traditional matching
-        matched_skills = []
-        missing_skills = []
-        semantic_matches = []
+        return training_list
+    
+    def extract_awards_recognition(self, text: str) -> List[Dict[str, Any]]:
+        """Extract awards and recognition."""
+        awards_list = []
         
-        # First pass: exact and partial matching
-        for job_skill in job_skills:
-            found = False
-            for resume_skill in resume_skills:
-                if (job_skill.lower() == resume_skill.lower() or 
-                    job_skill.lower() in resume_skill.lower() or 
-                    resume_skill.lower() in job_skill.lower()):
-                    matched_skills.append({
-                        'required_skill': job_skill,
-                        'matched_skill': resume_skill,
-                        'match_type': 'exact',
-                        'confidence': 1.0
+        award_patterns = [
+            r'(?:Award|Recognition|Honor|Achievement)\s*:?\s*([^,\n]+)(?:,\s*(\d{4}|\w+\s+\d{4}))?',
+            r'([^,\n]*(?:Award|Prize|Medal|Honor)[^,\n]*)(?:,\s*(\d{4}))?'
+        ]
+        
+        for pattern in award_patterns:
+            matches = re.findall(pattern, text, re.IGNORECASE)
+            for match in matches:
+                award_name = match[0] if isinstance(match, tuple) else match
+                year = match[1] if isinstance(match, tuple) and len(match) > 1 else None
+                
+                awards_list.append({
+                    'name': award_name.strip(),
+                    'year': year,
+                    'type': 'award'
+                })
+        
+        return awards_list
+    
+    def extract_language_proficiency(self, text: str) -> List[Dict[str, Any]]:
+        """Extract language proficiency information."""
+        languages = []
+        
+        # Common languages and proficiency levels
+        common_languages = ['English', 'Filipino', 'Tagalog', 'Spanish', 'Chinese', 'Japanese', 'Korean', 'French', 'German']
+        proficiency_levels = ['Native', 'Fluent', 'Proficient', 'Intermediate', 'Basic', 'Conversational']
+        
+        language_patterns = [
+            r'(?:Language|Languages)\s*:?\s*([^,\n]+)',
+            r'([A-Za-z]+)\s*[-:]\s*(Native|Fluent|Proficient|Intermediate|Basic|Conversational)',
+            r'(English|Filipino|Tagalog|Spanish|Chinese|Japanese|Korean|French|German)\s*[-:]?\s*(Native|Fluent|Proficient|Intermediate|Basic|Conversational)?'
+        ]
+        
+        for pattern in language_patterns:
+            matches = re.findall(pattern, text, re.IGNORECASE)
+            for match in matches:
+                if isinstance(match, tuple):
+                    language = match[0].strip()
+                    proficiency = match[1].strip() if len(match) > 1 and match[1] else 'Proficient'
+                else:
+                    language = match.strip()
+                    proficiency = 'Proficient'
+                
+                if language in common_languages:
+                    languages.append({
+                        'language': language,
+                        'proficiency': proficiency
                     })
-                    found = True
-                    break
-            if not found:
-                missing_skills.append(job_skill)
         
-        # Second pass: semantic matching for missing skills
-        try:
-            for missing_skill in missing_skills[:]:  # Copy list to modify during iteration
-                best_match = None
-                best_similarity = 0.0
+        return languages
+    
+    def extract_licenses(self, text: str) -> List[Dict[str, Any]]:
+        """Extract professional licenses."""
+        licenses = []
+        
+        license_patterns = [
+            r'(?:License|Licensed)\s*:?\s*([^,\n]+)(?:,?\s*License\s*No\.?\s*([A-Z0-9\-]+))?(?:,?\s*(\d{4}))?',
+            r'([A-Z]{2,})\s+License(?:\s*No\.?\s*([A-Z0-9\-]+))?(?:,?\s*(\d{4}))?'
+        ]
+        
+        for pattern in license_patterns:
+            matches = re.findall(pattern, text, re.IGNORECASE)
+            for match in matches:
+                license_type = match[0].strip()
+                license_number = match[1] if len(match) > 1 and match[1] else None
+                issue_year = match[2] if len(match) > 2 and match[2] else None
                 
-                for resume_skill in resume_skills:
-                    similarity = self.semantic_analyzer.semantic_similarity(
-                        missing_skill, resume_skill
-                    )
+                licenses.append({
+                    'type': license_type,
+                    'number': license_number,
+                    'issue_year': issue_year
+                })
+        
+        return licenses
+    
+    def extract_volunteer_work(self, text: str) -> List[Dict[str, Any]]:
+        """Extract volunteer work and community service."""
+        volunteer_work = []
+        
+        volunteer_patterns = [
+            r'(?:Volunteer|Community\s+Service|Civic\s+Activities)\s*:?\s*([^,\n]+)(?:,\s*([^,\n]+))?(?:,\s*(\d{4}))?',
+            r'([^,\n]+)\s*-\s*Volunteer(?:\s*at\s*([^,\n]+))?(?:,\s*(\d{4}))?'
+        ]
+        
+        for pattern in volunteer_patterns:
+            matches = re.findall(pattern, text, re.IGNORECASE)
+            for match in matches:
+                activity = match[0].strip()
+                organization = match[1].strip() if len(match) > 1 and match[1] else None
+                year = match[2] if len(match) > 2 and match[2] else None
+                
+                volunteer_work.append({
+                    'activity': activity,
+                    'organization': organization,
+                    'year': year
+                })
+        
+        return volunteer_work
+    
+    def extract_references(self, text: str) -> List[Dict[str, Any]]:
+        """Extract personal references."""
+        references = []
+        
+        # Look for reference section
+        reference_section = re.search(r'(?:References?|Character\s+References?)\s*:?\s*(.*?)(?:\n\n|\Z)', text, re.IGNORECASE | re.DOTALL)
+        
+        if reference_section:
+            ref_text = reference_section.group(1)
+            
+            # Pattern for name, position, contact
+            ref_patterns = [
+                r'([A-Za-z\s\.]+),?\s*([^,\n]+),?\s*([0-9\-\+\(\)\s]+|[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})',
+                r'([A-Za-z\s\.]+)\s*-\s*([^,\n]+)'
+            ]
+            
+            for pattern in ref_patterns:
+                matches = re.findall(pattern, ref_text, re.IGNORECASE)
+                for match in matches:
+                    name = match[0].strip()
+                    position = match[1].strip() if len(match) > 1 else None
+                    contact = match[2].strip() if len(match) > 2 else None
                     
-                    if similarity > best_similarity and similarity > 0.7:  # High threshold
-                        best_similarity = similarity
-                        best_match = resume_skill
-                
-                if best_match:
-                    semantic_matches.append({
-                        'required_skill': missing_skill,
-                        'matched_skill': best_match,
-                        'match_type': 'semantic',
-                        'confidence': best_similarity
-                    })
-                    missing_skills.remove(missing_skill)
-                    
-        except Exception as e:
-            self.logger.error(f"Error in semantic matching: {str(e)}")
-        
-        # Calculate enhanced match percentage
-        total_matches = len(matched_skills) + len(semantic_matches)
-        total_required = len(job_skills) if job_skills else 1
-        match_percentage = round((total_matches / total_required) * 100, 2)
-        
-        # Calculate weighted score (exact matches worth more than semantic)
-        exact_weight = 1.0
-        semantic_weight = 0.8
-        
-        weighted_score = (
-            len(matched_skills) * exact_weight + 
-            sum(match['confidence'] for match in semantic_matches) * semantic_weight
-        ) / total_required * 100
-        
-        return {
-            'exact_matches': [match['required_skill'] for match in matched_skills],
-            'semantic_matches': semantic_matches,
-            'missing_skills': missing_skills,
-            'match_percentage': match_percentage,
-            'weighted_score': round(weighted_score, 2),
-            'total_required_skills': total_required,
-            'exact_match_count': len(matched_skills),
-            'semantic_match_count': len(semantic_matches),
-            'all_matches': matched_skills + semantic_matches
-        }
-        
-    def calculate_match_score(self, resume_text: str, job_requirements: str, 
-                            job_category: str = None, category_description: str = None,
-                            required_experience: str = None) -> Dict[str, Any]:
-        """Calculate comprehensive match score using multiple weighted components."""
-        try:
-            # Traditional TF-IDF approach
-            resume_clean = self.clean_text(resume_text)
-            requirements_clean = self.clean_text(job_requirements)
-            
-            # Include category description in analysis if provided
-            enhanced_requirements = requirements_clean
-            if category_description:
-                enhanced_requirements += " " + self.clean_text(category_description)
-            
-            vectorizer = TfidfVectorizer(stop_words='english')
-            tfidf_matrix = vectorizer.fit_transform([resume_clean, enhanced_requirements])
-            tfidf_similarity = cosine_similarity(tfidf_matrix[0:1], tfidf_matrix[1:2])[0][0]
-            
-            # Semantic similarity
-            semantic_score = 0.0
-            semantic_details = {}
-            
-            try:
-                semantic_score = self.semantic_analyzer.semantic_similarity(
-                    resume_text, job_requirements + " " + (category_description or "")
-                )
-                
-                # Get detailed semantic matching
-                semantic_details = self.semantic_analyzer.semantic_job_matching(
-                    resume_text, job_requirements
-                )
-                
-            except Exception as e:
-                self.logger.error(f"Error in semantic scoring: {str(e)}")
-                semantic_details = {'error': str(e)}
-            
-            # Skills-based matching
-            resume_skills = self.extract_skills(resume_text)
-            skills_match = self.match_skills_with_requirements(resume_skills, job_requirements)
-            
-            # Experience level matching
-            experience_score = 50.0  # Default neutral score
-            if required_experience:
-                experience_score = self.calculate_experience_match_score(resume_text, required_experience)
-            
-            # Category relevance (if category provided)
-            category_score = 50.0  # Default neutral
-            if job_category:
-                category_score = self.semantic_analyzer.semantic_similarity(
-                    resume_text, job_category + " " + (category_description or "")
-                ) * 100
-            
-            # Dynamic scoring weights based on availability of components
-            base_weights = {
-                'tfidf': 0.25,
-                'semantic': 0.35,
-                'skills': 0.25,
-                'experience': 0.10,
-                'category': 0.05
-            }
-            
-            # Adjust weights if some components are missing
-            active_weights = {}
-            total_weight = 0
-            
-            for component, weight in base_weights.items():
-                if component == 'experience' and not required_experience:
-                    continue
-                if component == 'category' and not job_category:
-                    continue
-                active_weights[component] = weight
-                total_weight += weight
-            
-            # Normalize weights to sum to 1.0
-            for component in active_weights:
-                active_weights[component] /= total_weight
-            
-            # Normalize scores to 0-100 range
-            tfidf_score = tfidf_similarity * 100
-            semantic_score_normalized = semantic_score * 100
-            skills_score = skills_match.get('weighted_score', 0)
-            
-            # Calculate weighted final score
-            final_score = (
-                tfidf_score * active_weights.get('tfidf', 0) +
-                semantic_score_normalized * active_weights.get('semantic', 0) +
-                skills_score * active_weights.get('skills', 0) +
-                experience_score * active_weights.get('experience', 0) +
-                category_score * active_weights.get('category', 0)
-            )
-            
-            # Ensure score is between 0 and 100
-            final_score = max(0, min(final_score, 100))
-            
-            return {
-                'final_score': round(final_score, 2),
-                'component_scores': {
-                    'tfidf_score': round(tfidf_score, 2),
-                    'semantic_score': round(semantic_score_normalized, 2),
-                    'skills_score': round(skills_score, 2),
-                    'experience_score': round(experience_score, 2),
-                    'category_score': round(category_score, 2)
-                },
-                'skills_analysis': skills_match,
-                'semantic_details': semantic_details,
-                'weights_used': active_weights,
-                'match_breakdown': {
-                    'skills_matched': skills_match.get('exact_match_count', 0) + skills_match.get('semantic_match_count', 0),
-                    'skills_total': skills_match.get('total_required_skills', 0),
-                    'experience_alignment': round(experience_score, 1),
-                    'category_relevance': round(category_score, 1)
-                }
-            }
-            
-        except Exception as e:
-            self.logger.error(f"Error calculating comprehensive match score: {str(e)}")
-            return {
-                'final_score': 0.0,
-                'error': str(e),
-                'component_scores': {
-                    'tfidf_score': 0.0,
-                    'semantic_score': 0.0,
-                    'skills_score': 0.0,
-                    'experience_score': 0.0,
-                    'category_score': 0.0
-                }
-            }
-    
-    def calculate_experience_match_score(self, resume_text: str, required_experience: str) -> float:
-        """Calculate how well candidate's experience matches required experience level."""
-        try:
-            resume_seniority = self._determine_seniority_level(resume_text)
-            required_seniority = required_experience.lower()
-            
-            # Experience level mapping
-            level_scores = {
-                ('junior', 'entry'): 1.0, ('junior', 'junior'): 1.0,
-                ('junior', 'mid-level'): 0.6, ('junior', 'senior'): 0.2,
-                ('mid-level', 'entry'): 0.8, ('mid-level', 'junior'): 0.8,
-                ('mid-level', 'mid-level'): 1.0, ('mid-level', 'senior'): 0.6,
-                ('senior', 'entry'): 0.9, ('senior', 'junior'): 0.9,
-                ('senior', 'mid-level'): 0.9, ('senior', 'senior'): 1.0
-            }
-            
-            # Map common variations
-            experience_mapping = {
-                'entry level': 'entry', 'entry-level': 'entry',
-                'mid level': 'mid-level', 'intermediate': 'mid-level',
-                'experienced': 'mid-level', 'senior level': 'senior'
-            }
-            
-            mapped_required = experience_mapping.get(required_seniority, required_seniority)
-            
-            score = level_scores.get((resume_seniority, mapped_required), 0.5)
-            return score * 100  # Convert to percentage
-            
-        except Exception as e:
-            self.logger.error(f"Error calculating experience match: {str(e)}")
-            return 50.0  # Neutral score on error
-    
-    def analyze_transferable_skills(self, resume_text: str, target_domain: str) -> Dict[str, Any]:
-        """Analyze transferable skills for career transitions using semantic understanding."""
-        try:
-            # Extract all skills with context
-            skills_with_context = self.extract_skills_with_context(resume_text)
-            
-            # Define transferable skill categories
-            transferable_categories = {
-                'leadership': ['management', 'team lead', 'supervision', 'mentoring', 'project management'],
-                'communication': ['presentation', 'writing', 'documentation', 'client relations'],
-                'analytical': ['problem solving', 'data analysis', 'research', 'critical thinking'],
-                'technical': ['programming', 'database', 'web development', 'software'],
-                'creative': ['design', 'innovation', 'creativity', 'user experience']
-            }
-            
-            transferable_analysis = {}
-            
-            for category, keywords in transferable_categories.items():
-                category_skills = []
-                
-                for skill, details in skills_with_context.items():
-                    # Check if skill belongs to this category using semantic similarity
-                    for keyword in keywords:
-                        similarity = self.semantic_analyzer.semantic_similarity(skill, keyword)
-                        if similarity > 0.5:
-                            category_skills.append({
-                                'skill': skill,
-                                'relevance': similarity,
-                                'experience_level': details.get('experience_level', 'unknown'),
-                                'confidence': details.get('confidence', 0.0)
+                    # Validate the reference data
+                    if self._is_valid_reference_name_text(name):
+                        if position and self._is_valid_reference_data_text(position):
+                            references.append({
+                                'name': name,
+                                'position': position,
+                                'contact': contact
                             })
-                            break
-                
-                if category_skills:
-                    transferable_analysis[category] = {
-                        'skills': category_skills,
-                        'strength': len(category_skills),
-                        'avg_relevance': np.mean([s['relevance'] for s in category_skills])
-                    }
-            
-            # Calculate transferability to target domain
-            domain_relevance = 0.0
-            if target_domain:
-                domain_similarity = self.semantic_analyzer.semantic_similarity(
-                    resume_text, target_domain
-                )
-                domain_relevance = domain_similarity
-            
-            return {
-                'transferable_skills': transferable_analysis,
-                'domain_relevance': float(domain_relevance),
-                'total_transferable_count': sum(
-                    len(cat['skills']) for cat in transferable_analysis.values()
-                ),
-                'strongest_category': max(
-                    transferable_analysis.keys(),
-                    key=lambda k: transferable_analysis[k]['avg_relevance']
-                ) if transferable_analysis else None
-            }
-            
-        except Exception as e:
-            self.logger.error(f"Error analyzing transferable skills: {str(e)}")
-            return {'error': str(e)}
+                        else:
+                            # Skip if position contains government ID info
+                            continue
+        
+        return references
     
-    def semantic_resume_summary(self, resume_text: str) -> Dict[str, Any]:
-        """Generate a comprehensive semantic summary of the resume."""
-        try:
-            # Extract various components
-            basic_info = self.extract_basic_info(resume_text)
-            skills = self.extract_skills_with_context(resume_text)
-            experience = self.extract_experience(resume_text)
-            education = self.extract_education(resume_text)
+    def _is_valid_reference_name_text(self, name: str) -> bool:
+        """Check if text is a valid reference name (text extraction version)"""
+        if not name or len(name.strip()) < 3:
+            return False
             
-            # Analyze skill diversity and depth
-            skill_categories = {}
-            for skill, details in skills.items():
-                # Categorize skills semantically
-                for category, category_skills in self.skills_dict.items():
-                    for cat_skill in category_skills:
-                        similarity = self.semantic_analyzer.semantic_similarity(skill, cat_skill)
-                        if similarity > 0.6:
-                            if category not in skill_categories:
-                                skill_categories[category] = []
-                            skill_categories[category].append({
-                                'skill': skill,
-                                'similarity': similarity,
-                                'experience_level': details.get('experience_level', 'unknown')
-                            })
-                            break
-            
-            # Calculate experience depth
-            experience_indicators = {
-                'senior_keywords': ['senior', 'lead', 'manager', 'director', 'architect'],
-                'years_mentioned': re.findall(r'(\d+)\s*(?:years?|yrs?)', resume_text.lower()),
-                'companies_count': len(re.findall(r'(?:company|corp|inc|ltd|llc)', resume_text.lower()))
-            }
-            
-            return {
-                'basic_info': basic_info,
-                'skill_summary': {
-                    'total_skills': len(skills),
-                    'categorized_skills': skill_categories,
-                    'skill_diversity': len(skill_categories),
-                    'avg_confidence': np.mean([s.get('confidence', 0) for s in skills.values()]) if skills else 0
-                },
-                'experience_summary': {
-                    'total_experiences': len(experience),
-                    'experience_indicators': experience_indicators,
-                    'seniority_level': self._determine_seniority_level(resume_text)
-                },
-                'education_summary': {
-                    'education_count': len(education),
-                    'education_details': education
-                }
-            }
-            
-        except Exception as e:
-            self.logger.error(f"Error generating semantic summary: {str(e)}")
-            return {'error': str(e)}
+        name = name.strip()
+        
+        # Check for valid name patterns
+        valid_patterns = [
+            r'^(Prof\.|Dr\.|Mr\.|Mrs\.|Ms\.)?\s*[A-Z][a-z]+\s+[A-Z][a-z]+',
+            r'^[A-Z][a-z]+\s+[A-Z][a-z]+\s+[A-Z][a-z]+',
+            r'^[A-Z][A-Z\s]+$'
+        ]
+        
+        for pattern in valid_patterns:
+            if re.match(pattern, name):
+                return True
+        
+        return False
     
-    def _determine_seniority_level(self, text: str) -> str:
-        """Determine seniority level based on semantic analysis."""
+    def _is_valid_reference_data_text(self, text: str) -> bool:
+        """Check if text is valid reference data (not government ID info)"""
+        if not text:
+            return True
+            
         text_lower = text.lower()
         
-        senior_indicators = [
-            'senior', 'lead', 'principal', 'architect', 'manager', 'director',
-            'head of', 'chief', 'vp', 'vice president'
+        # Reject government ID patterns
+        reject_patterns = [
+            r'government\s+issued\s+id',
+            r'sss\s*:?\s*\d*',
+            r'tin\s*:?\s*\d*',
+            r'philhealth\s*:?\s*\d*',
+            r'pag-?ibig\s*:?\s*\d*',
+            r'id\s*:?\s*(sss|tin|philhealth)'
         ]
         
-        mid_indicators = [
-            'developer', 'engineer', 'analyst', 'specialist', 'consultant'
-        ]
+        for pattern in reject_patterns:
+            if re.search(pattern, text_lower):
+                return False
         
-        junior_indicators = [
-            'junior', 'entry', 'associate', 'intern', 'trainee', 'assistant'
-        ]
+        return True
+    
+    def extract_government_ids(self, text: str) -> Dict[str, str]:
+        """Extract government ID numbers."""
+        gov_ids = {}
         
-        # Count indicators
-        senior_count = sum(1 for indicator in senior_indicators if indicator in text_lower)
-        mid_count = sum(1 for indicator in mid_indicators if indicator in text_lower)
-        junior_count = sum(1 for indicator in junior_indicators if indicator in text_lower)
+        id_patterns = {
+            'sss': r'(?:SSS|Social\s+Security)\s*(?:No\.?|Number)\s*:?\s*([0-9\-]+)',
+            'tin': r'(?:TIN|Tax\s+Identification)\s*(?:No\.?|Number)\s*:?\s*([0-9\-]+)',
+            'philhealth': r'(?:PhilHealth|Phil\s*Health)\s*(?:No\.?|Number)\s*:?\s*([0-9\-]+)',
+            'pagibig': r'(?:Pag-IBIG|HDMF)\s*(?:No\.?|Number)\s*:?\s*([0-9\-]+)',
+            'passport': r'(?:Passport)\s*(?:No\.?|Number)\s*:?\s*([A-Z0-9]+)',
+            'drivers_license': r'(?:Driver\'?s?\s+License|DL)\s*(?:No\.?|Number)\s*:?\s*([A-Z0-9\-]+)'
+        }
         
-        # Check years of experience
-        years_matches = re.findall(r'(\d+)\s*(?:years?|yrs?)', text_lower)
-        max_years = max([int(year) for year in years_matches]) if years_matches else 0
+        for id_type, pattern in id_patterns.items():
+            match = re.search(pattern, text, re.IGNORECASE)
+            if match:
+                gov_ids[id_type] = match.group(1).strip()
         
-        # Determine level
-        if senior_count > 0 or max_years >= 7:
-            return 'senior'
-        elif junior_count > 0 or max_years <= 2:
-            return 'junior'
-        else:
-            return 'mid-level'
-        
-    def calculate_priority_weighted_skills_score(self, resume_skills: List[str], 
-                                                job_requirements: str, 
-                                                priority_skills: List[str] = None) -> Dict[str, Any]:
-        """Calculate skills score with priority weighting for critical skills."""
+        return gov_ids
+    
+    def score_pds_against_job(self, pds_data: Dict[str, Any], job_requirements: Dict[str, Any]) -> Dict[str, Any]:
+        """Score a Personal Data Sheet against job requirements using configurable criteria."""
         try:
-            # Get basic skills matching
-            basic_match = self.match_skills_with_requirements(resume_skills, job_requirements)
+            scores = {}
+            total_score = 0
             
-            if not priority_skills:
-                return basic_match
+            # Education scoring
+            education_score = self._score_education(pds_data.get('education', []), job_requirements)
+            scores['education'] = education_score
+            total_score += education_score * self.pds_scoring_criteria['education']['weight']
             
-            # Calculate priority skills matching
-            priority_matched = 0
-            priority_total = len(priority_skills)
-            priority_details = []
+            # Experience scoring
+            experience_score = self._score_experience(pds_data.get('experience', []), job_requirements)
+            scores['experience'] = experience_score
+            total_score += experience_score * self.pds_scoring_criteria['experience']['weight']
             
-            for priority_skill in priority_skills:
-                skill_found = False
-                best_match = None
-                best_similarity = 0.0
-                
-                # Check exact matches first
-                for resume_skill in resume_skills:
-                    if (priority_skill.lower() == resume_skill.lower() or 
-                        priority_skill.lower() in resume_skill.lower() or 
-                        resume_skill.lower() in priority_skill.lower()):
-                        priority_matched += 1
-                        skill_found = True
-                        priority_details.append({
-                            'required': priority_skill,
-                            'matched': resume_skill,
-                            'type': 'exact',
-                            'score': 1.0
-                        })
-                        break
-                
-                # If no exact match, try semantic matching
-                if not skill_found:
-                    for resume_skill in resume_skills:
-                        similarity = self.semantic_analyzer.semantic_similarity(
-                            priority_skill, resume_skill
-                        )
-                        if similarity > best_similarity and similarity > 0.75:  # High threshold for priority
-                            best_similarity = similarity
-                            best_match = resume_skill
-                    
-                    if best_match:
-                        priority_matched += best_similarity  # Partial credit for semantic match
-                        priority_details.append({
-                            'required': priority_skill,
-                            'matched': best_match,
-                            'type': 'semantic',
-                            'score': best_similarity
-                        })
+            # Skills scoring
+            skills_score = self._score_skills_pds(pds_data.get('skills', {}), job_requirements)
+            scores['skills'] = skills_score
+            total_score += skills_score * self.pds_scoring_criteria['skills']['weight']
             
-            # Calculate enhanced score with priority weighting
-            priority_score = (priority_matched / priority_total * 100) if priority_total > 0 else 100
+            # Personal attributes scoring
+            personal_score = self._score_personal_attributes(pds_data, job_requirements)
+            scores['personal_attributes'] = personal_score
+            total_score += personal_score * self.pds_scoring_criteria['personal_attributes']['weight']
             
-            # Combine with basic score (70% basic, 30% priority)
-            enhanced_score = (basic_match.get('weighted_score', 0) * 0.7 + priority_score * 0.3)
+            # Additional qualifications scoring
+            additional_score = self._score_additional_qualifications(pds_data, job_requirements)
+            scores['additional_qualifications'] = additional_score
+            total_score += additional_score * self.pds_scoring_criteria['additional_qualifications']['weight']
             
             return {
-                **basic_match,  # Include all basic match data
-                'priority_score': round(priority_score, 2),
-                'enhanced_weighted_score': round(enhanced_score, 2),
-                'priority_details': priority_details,
-                'priority_match_rate': round(priority_matched / priority_total * 100, 2) if priority_total > 0 else 100
+                'total_score': round(total_score, 2),
+                'category_scores': scores,
+                'scoring_breakdown': self._generate_scoring_breakdown(scores, pds_data, job_requirements)
             }
             
         except Exception as e:
-            self.logger.error(f"Error in priority weighted scoring: {str(e)}")
-            return self.match_skills_with_requirements(resume_skills, job_requirements)
+            self.logger.error(f"Error scoring PDS: {str(e)}")
+            return {'total_score': 0, 'error': str(e)}
+    
+    def _score_education(self, education_list: List[Dict], job_requirements: Dict) -> float:
+        """Score education based on relevance, level, and institution."""
+        if not education_list:
+            return 0
         
-# Legacy function wrappers for backward compatibility
-def cleanResume(txt):
-    processor = ResumeProcessor()
-    return processor.clean_text(txt)
-
-def pdf_to_text(file):
-    processor = ResumeProcessor()
-    return processor._extract_from_pdf(file)
-
-def extract_contact_number_from_resume(text):
-    processor = ResumeProcessor()
-    return processor._extract_phone(text)
-
-def extract_email_from_resume(text):
-    processor = ResumeProcessor()
-    return processor._extract_email(text)
-
-def extract_name_from_resume(text):
-    processor = ResumeProcessor()
-    return processor.extract_name(text)
-
-def extract_skills_from_resume(text):
-    processor = ResumeProcessor()
-    return processor.extract_skills(text)
-
-def extract_education_from_resume(text):
-    processor = ResumeProcessor()
-    return processor.extract_education(text)
-
-def predict_category(text, tfidf_vectorizer, rf_classifier):
-    processor = ResumeProcessor()
-    return processor.predict_category(text, tfidf_vectorizer, rf_classifier)
-
-def job_recommendation(text, tfidf_vectorizer, rf_classifier):
-    processor = ResumeProcessor()
-    return processor.predict_job_recommendation(text, tfidf_vectorizer, rf_classifier)
+        required_education = job_requirements.get('education_level', '').lower()
+        preferred_field = job_requirements.get('preferred_field', '').lower()
+        
+        max_score = 0
+        for edu in education_list:
+            score = 0
+            degree = edu.get('degree', '').lower()
+            
+            # Education level scoring
+            if 'phd' in degree or 'doctorate' in degree:
+                level_score = 100
+            elif 'master' in degree or 'ms' in degree or 'ma' in degree:
+                level_score = 85
+            elif 'bachelor' in degree or 'bs' in degree or 'ba' in degree:
+                level_score = 70
+            else:
+                level_score = 50
+            
+            # Field relevance scoring
+            relevance_score = 70  # Base score
+            if preferred_field and preferred_field in degree:
+                relevance_score = 100
+            
+            # Institution scoring (simplified)
+            institution_score = 75  # Base score for any accredited institution
+            
+            # Grades scoring
+            grades_score = 75  # Base score
+            if edu.get('honors'):
+                grades_score = 90
+            if edu.get('gpa') and float(edu.get('gpa', 0)) >= 3.5:
+                grades_score = max(grades_score, 85)
+            
+            # Weighted calculation
+            weighted_score = (
+                relevance_score * 0.4 +
+                level_score * 0.3 +
+                institution_score * 0.2 +
+                grades_score * 0.1
+            )
+            
+            max_score = max(max_score, weighted_score)
+        
+        return max_score
+    
+    def _score_experience(self, experience_list: List[Dict], job_requirements: Dict) -> float:
+        """Score work experience based on relevance and duration."""
+        if not experience_list:
+            return 0
+        
+        required_years = job_requirements.get('experience_years', 0)
+        relevant_keywords = job_requirements.get('relevant_experience', [])
+        
+        total_years = 0
+        relevance_score = 0
+        
+        for exp in experience_list:
+            # Calculate years of experience
+            start_year = exp.get('start_year', 0)
+            end_year = exp.get('end_year', datetime.now().year)
+            if start_year:
+                years = end_year - start_year
+                total_years += years
+            
+            # Check relevance
+            job_title = exp.get('position', '').lower()
+            company = exp.get('company', '').lower()
+            description = exp.get('description', '').lower()
+            
+            exp_text = f"{job_title} {company} {description}"
+            keyword_matches = sum(1 for keyword in relevant_keywords if keyword.lower() in exp_text)
+            
+            if keyword_matches > 0:
+                relevance_score = max(relevance_score, min(100, keyword_matches * 25))
+        
+        # Duration scoring
+        duration_score = min(100, (total_years / max(required_years, 1)) * 100)
+        
+        # Responsibilities scoring (simplified)
+        responsibilities_score = 75  # Base score
+        
+        return (
+            relevance_score * 0.5 +
+            duration_score * 0.3 +
+            responsibilities_score * 0.2
+        )
+    
+   
+    
+    

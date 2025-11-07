@@ -1,0 +1,639 @@
+/* Hybrid Scoring Display Components */
+
+/* Hybrid Scoring Container */
+.hybrid-scoring-display {
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+}
+
+/* Scoring Methods Comparison */
+.scoring-methods-comparison {
+    margin-bottom: 2rem;
+}
+
+.scoring-method-card {
+    background: white;
+    border-radius: 8px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    height: 100%;
+    border-left: 4px solid #007bff;
+}
+
+.scoring-method-card.university-method {
+    border-left-color: #28a745;
+}
+
+.scoring-method-card.semantic-method {
+    border-left-color: #007bff;
+}
+
+.method-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.method-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 1rem;
+    font-size: 1.2rem;
+}
+
+.university-method .method-icon {
+    background: #28a745;
+    color: white;
+}
+
+.semantic-method .method-icon {
+    background: #007bff;
+    color: white;
+}
+
+.method-info h5 {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.method-info p {
+    margin: 0;
+    font-size: 0.85rem;
+    color: #6c757d;
+}
+
+.method-score {
+    margin-left: auto;
+    text-align: center;
+}
+
+.method-score .score-value {
+    display: block;
+    font-size: 1.8rem;
+    font-weight: bold;
+    color: #007bff;
+}
+
+.method-score .score-label {
+    font-size: 0.9rem;
+    color: #6c757d;
+}
+
+/* Method Breakdown */
+.method-breakdown,
+.university-breakdown,
+.semantic-breakdown {
+    margin-top: 1rem;
+}
+
+.breakdown-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.breakdown-item:last-child {
+    border-bottom: none;
+}
+
+.breakdown-item.total {
+    font-weight: bold;
+    border-top: 2px solid #007bff;
+    margin-top: 0.5rem;
+    padding-top: 1rem;
+}
+
+.item-label {
+    font-size: 0.9rem;
+    color: #495057;
+}
+
+.item-score {
+    font-weight: 600;
+    color: #007bff;
+}
+
+/* Hybrid Results Summary */
+.hybrid-results-summary {
+    margin-top: 2rem;
+}
+
+.hybrid-score-card {
+    background: white;
+    border-radius: 8px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    border-left: 4px solid #6f42c1;
+}
+
+.hybrid-header h6 {
+    margin: 0;
+    font-weight: 600;
+    color: #6f42c1;
+}
+
+.hybrid-scores {
+    margin-top: 1rem;
+}
+
+.hybrid-score-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding: 0.75rem;
+    background: #f8f9fa;
+    border-radius: 6px;
+}
+
+.hybrid-score-item .label {
+    flex: 1;
+    font-weight: 500;
+    color: #495057;
+}
+
+.hybrid-score-item .value {
+    margin-right: 1rem;
+    font-weight: bold;
+    color: #007bff;
+    min-width: 80px;
+    text-align: right;
+}
+
+.score-bar {
+    flex: 2;
+    height: 8px;
+    background: #e9ecef;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.score-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.8s ease-in-out;
+}
+
+.score-fill.university {
+    background: linear-gradient(90deg, #28a745, #20c997);
+}
+
+.score-fill.semantic {
+    background: linear-gradient(90deg, #007bff, #6610f2);
+}
+
+.score-fill.hybrid {
+    background: linear-gradient(90deg, #6f42c1, #e83e8c);
+}
+
+/* Semantic Analysis Display */
+.semantic-analysis-display {
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+}
+
+.semantic-overview {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.relevance-score-display {
+    display: inline-block;
+}
+
+.relevance-circle {
+    position: relative;
+    display: inline-block;
+}
+
+.circle-chart {
+    position: relative;
+    width: 120px;
+    height: 120px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.circle-chart svg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    transform: rotate(-90deg);
+}
+
+.chart-content {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+}
+
+.chart-content .percentage {
+    display: block;
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #007bff;
+}
+
+.chart-content .label {
+    display: block;
+    font-size: 0.8rem;
+    color: #6c757d;
+    margin-top: 0.25rem;
+}
+
+/* Semantic Breakdown Detailed */
+.semantic-breakdown-detailed {
+    margin-top: 2rem;
+}
+
+.semantic-breakdown-detailed h6 {
+    margin-bottom: 1rem;
+    font-weight: 600;
+    color: #495057;
+}
+
+.relevance-categories {
+    margin-top: 1rem;
+}
+
+.relevance-category {
+    background: white;
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.category-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.category-name {
+    font-weight: 500;
+    color: #495057;
+}
+
+.category-score {
+    font-weight: bold;
+    color: #007bff;
+}
+
+.category-bar {
+    height: 6px;
+    background: #e9ecef;
+    border-radius: 3px;
+    overflow: hidden;
+    margin-bottom: 0.5rem;
+}
+
+.bar-fill {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 0.8s ease-in-out;
+}
+
+.bar-fill.education {
+    background: linear-gradient(90deg, #28a745, #20c997);
+}
+
+.bar-fill.experience {
+    background: linear-gradient(90deg, #007bff, #0056b3);
+}
+
+.bar-fill.skills {
+    background: linear-gradient(90deg, #6610f2, #e83e8c);
+}
+
+.category-insights {
+    margin-top: 0.5rem;
+}
+
+.insight {
+    font-size: 0.85rem;
+    color: #6c757d;
+    font-style: italic;
+    margin: 0;
+}
+
+/* AI Insights and Recommendations */
+.ai-insights,
+.ai-recommendations {
+    margin-top: 1.5rem;
+    background: white;
+    border-radius: 8px;
+    padding: 1rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.ai-insights h6,
+.ai-recommendations h6 {
+    margin-bottom: 1rem;
+    font-weight: 600;
+    color: #495057;
+}
+
+.insights-list,
+.recommendations-list {
+    margin-top: 0.5rem;
+}
+
+.insight-item,
+.recommendation-item {
+    padding: 0.75rem;
+    background: #f8f9fa;
+    border-radius: 6px;
+    margin-bottom: 0.5rem;
+    border-left: 3px solid #007bff;
+    font-size: 0.9rem;
+}
+
+.recommendation-item {
+    border-left-color: #28a745;
+}
+
+/* Assessment Comparison Display */
+.assessment-comparison-display {
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+}
+
+.comparison-methods {
+    margin-bottom: 2rem;
+}
+
+.method-comparison-card {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    height: 100%;
+}
+
+.method-comparison-card.traditional {
+    border-left: 4px solid #6c757d;
+}
+
+.method-comparison-card.enhanced {
+    border-left: 4px solid #007bff;
+}
+
+.method-comparison-card .card-header {
+    display: flex;
+    justify-content: between;
+    align-items: center;
+    padding: 1rem;
+    border-bottom: 1px solid #e9ecef;
+    background: #f8f9fa;
+    border-radius: 8px 8px 0 0;
+}
+
+.method-comparison-card .card-header h6 {
+    margin: 0;
+    font-weight: 600;
+}
+
+.method-badge {
+    padding: 0.25rem 0.5rem;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    margin-left: auto;
+}
+
+.method-badge.traditional {
+    background: #6c757d;
+    color: white;
+}
+
+.method-badge.enhanced {
+    background: #007bff;
+    color: white;
+}
+
+.method-comparison-card .card-body {
+    padding: 1rem;
+}
+
+.score-display {
+    text-align: center;
+    margin-bottom: 1rem;
+}
+
+.score-display .score-value {
+    font-size: 2rem;
+    font-weight: bold;
+    color: #007bff;
+}
+
+.score-display .score-label {
+    font-size: 1rem;
+    color: #6c757d;
+}
+
+.method-details p {
+    margin-bottom: 1rem;
+    font-size: 0.9rem;
+}
+
+/* Comparison Insights */
+.comparison-insights {
+    background: white;
+    border-radius: 8px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.insights-header h6 {
+    margin: 0;
+    font-weight: 600;
+    color: #495057;
+}
+
+.insights-content {
+    margin-top: 1rem;
+}
+
+.difference-indicator {
+    display: flex;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding: 0.75rem;
+    background: #f8f9fa;
+    border-radius: 6px;
+}
+
+.difference-label {
+    font-weight: 500;
+    color: #495057;
+    margin-right: 1rem;
+}
+
+.difference-value {
+    font-weight: bold;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+}
+
+.difference-value.positive {
+    background: #d4edda;
+    color: #155724;
+}
+
+.difference-value.negative {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.difference-value.neutral {
+    background: #e2e3e5;
+    color: #495057;
+}
+
+.improvement-areas {
+    margin: 1rem 0;
+}
+
+.improvements h6 {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #495057;
+    margin-bottom: 0.5rem;
+}
+
+.improvements ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.improvements li {
+    padding: 0.5rem 0;
+    padding-left: 1.5rem;
+    position: relative;
+    font-size: 0.85rem;
+    color: #6c757d;
+}
+
+.improvements li::before {
+    content: "→";
+    position: absolute;
+    left: 0;
+    color: #007bff;
+    font-weight: bold;
+}
+
+.ai-advantages {
+    margin-top: 1rem;
+}
+
+.advantage-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.advantage-item i {
+    margin-right: 0.5rem;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .scoring-methods-comparison .row,
+    .comparison-methods .row {
+        margin: 0;
+    }
+    
+    .scoring-method-card,
+    .method-comparison-card {
+        margin-bottom: 1rem;
+    }
+    
+    .hybrid-score-item {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .hybrid-score-item .value {
+        margin: 0.5rem 0;
+        min-width: auto;
+        text-align: left;
+    }
+    
+    .score-bar {
+        width: 100%;
+        margin-top: 0.5rem;
+    }
+    
+    .method-header {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .method-icon {
+        margin-right: 0;
+        margin-bottom: 0.5rem;
+    }
+    
+    .method-score {
+        margin-left: 0;
+        margin-top: 0.5rem;
+    }
+}
+
+/* Dark Theme Support */
+[data-theme="dark"] .hybrid-scoring-display,
+[data-theme="dark"] .semantic-analysis-display,
+[data-theme="dark"] .assessment-comparison-display {
+    background: #2d3748;
+}
+
+[data-theme="dark"] .scoring-method-card,
+[data-theme="dark"] .hybrid-score-card,
+[data-theme="dark"] .relevance-category,
+[data-theme="dark"] .ai-insights,
+[data-theme="dark"] .ai-recommendations,
+[data-theme="dark"] .method-comparison-card,
+[data-theme="dark"] .comparison-insights {
+    background: #1a202c;
+    color: #e2e8f0;
+}
+
+[data-theme="dark"] .method-comparison-card .card-header {
+    background: #2d3748;
+    border-bottom-color: #4a5568;
+}
+
+[data-theme="dark"] .hybrid-score-item,
+[data-theme="dark"] .difference-indicator {
+    background: #2d3748;
+}
+
+[data-theme="dark"] .breakdown-item,
+[data-theme="dark"] .category-header {
+    border-bottom-color: #4a5568;
+}
+
+[data-theme="dark"] .item-label,
+[data-theme="dark"] .category-name {
+    color: #a0aec0;
+}
+
+[data-theme="dark"] .insight,
+[data-theme="dark"] .advantage-item {
+    color: #a0aec0;
+}

@@ -1,0 +1,201 @@
+/* Error Handling Styles */
+
+/* Navigation Error Notifications */
+.navigation-error-notifications {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 9999;
+    max-width: 400px;
+}
+
+.navigation-error-alert {
+    margin-bottom: 10px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    border-left: 4px solid #ffc107;
+    border-radius: 8px;
+    animation: slideInRight 0.3s ease-out;
+}
+
+.navigation-error-alert .alert-content {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+}
+
+.navigation-error-alert .error-icon {
+    color: #856404;
+    font-size: 1.2em;
+    margin-top: 2px;
+}
+
+.navigation-error-alert .error-details {
+    flex: 1;
+}
+
+.navigation-error-alert .error-title {
+    font-weight: 600;
+    color: #856404;
+    margin-bottom: 2px;
+}
+
+.navigation-error-alert .error-message {
+    font-size: 0.9em;
+    color: #856404;
+    opacity: 0.8;
+}
+
+/* Animation for error notifications */
+@keyframes slideInRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideOutRight {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+}
+
+.navigation-error-alert.fade-out {
+    animation: slideOutRight 0.3s ease-in;
+}
+
+/* Error page styles for fallback scenarios */
+.error-page {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 60vh;
+    text-align: center;
+    padding: 2rem;
+}
+
+.error-page .error-code {
+    font-size: 6rem;
+    font-weight: 700;
+    color: var(--primary-color, #007bff);
+    margin-bottom: 1rem;
+    line-height: 1;
+}
+
+.error-page .error-title {
+    font-size: 2rem;
+    font-weight: 600;
+    color: var(--text-primary, #333);
+    margin-bottom: 1rem;
+}
+
+.error-page .error-description {
+    font-size: 1.1rem;
+    color: var(--text-secondary, #666);
+    margin-bottom: 2rem;
+    max-width: 500px;
+}
+
+.error-page .error-actions {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.error-page .btn {
+    padding: 0.75rem 1.5rem;
+    border-radius: 6px;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+/* Flash message styling for server-side errors */
+.flash-messages {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 9998;
+    max-width: 400px;
+}
+
+.flash-message {
+    margin-bottom: 10px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    animation: slideInRight 0.3s ease-out;
+}
+
+.flash-message.alert-warning {
+    border-left: 4px solid #ffc107;
+}
+
+.flash-message.alert-error,
+.flash-message.alert-danger {
+    border-left: 4px solid #dc3545;
+}
+
+.flash-message.alert-success {
+    border-left: 4px solid #28a745;
+}
+
+.flash-message.alert-info {
+    border-left: 4px solid #17a2b8;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .navigation-error-notifications,
+    .flash-messages {
+        top: 10px;
+        right: 10px;
+        left: 10px;
+        max-width: none;
+    }
+    
+    .error-page .error-code {
+        font-size: 4rem;
+    }
+    
+    .error-page .error-title {
+        font-size: 1.5rem;
+    }
+    
+    .error-page .error-actions {
+        flex-direction: column;
+        align-items: center;
+    }
+}
+
+/* Dark theme support */
+[data-theme="dark"] .navigation-error-alert {
+    background-color: var(--dark-surface, #2d3748);
+    color: var(--dark-text, #e2e8f0);
+    border-color: #ffc107;
+}
+
+[data-theme="dark"] .error-page {
+    background-color: var(--dark-background, #1a202c);
+    color: var(--dark-text, #e2e8f0);
+}
+
+[data-theme="dark"] .error-page .error-code {
+    color: var(--primary-color-dark, #4299e1);
+}
+
+[data-theme="dark"] .error-page .error-title {
+    color: var(--dark-text-primary, #e2e8f0);
+}
+
+[data-theme="dark"] .error-page .error-description {
+    color: var(--dark-text-secondary, #a0aec0);
+}

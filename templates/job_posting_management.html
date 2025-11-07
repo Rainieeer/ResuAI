@@ -1,0 +1,346 @@
+<!-- LSPU Job Posting Management Interface -->
+<div class="position-management-section" style="display: none;" id="jobPostingManagement">
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5><i class="fas fa-briefcase me-2"></i>University Position Management</h5>
+            <div>
+                <button type="button" class="btn btn-primary btn-sm me-2" onclick="showCreateJobModal()">
+                    <i class="fas fa-plus me-1"></i>Create Position
+                </button>
+                <button type="button" class="btn btn-outline-secondary btn-sm" onclick="refreshJobPostings()">
+                    <i class="fas fa-refresh me-1"></i>Refresh
+                </button>
+            </div>
+        </div>
+        
+        <div class="card-body">
+            <!-- Position Type Filter -->
+            <div class="row mb-3">
+                <div class="col-md-4">
+                    <label class="form-label">Filter by Position Type</label>
+                    <select class="form-select" id="positionTypeFilter" onchange="filterJobPostings()">
+                        <option value="">All Position Types</option>
+                        <option value="1">Part-time Teaching</option>
+                        <option value="2">Regular Faculty</option>
+                        <option value="3">Non-Teaching Personnel</option>
+                        <option value="4">Job Order</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Filter by Status</label>
+                    <select class="form-select" id="statusFilter" onchange="filterJobPostings()">
+                        <option value="">All Status</option>
+                        <option value="draft">Draft</option>
+                        <option value="published">Published</option>
+                        <option value="closed">Closed</option>
+                        <option value="archived">Archived</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Search</label>
+                    <input type="text" class="form-control" id="jobSearchInput" placeholder="Search positions..." onkeyup="filterJobPostings()">
+                </div>
+            </div>
+            
+            <!-- Job Postings List -->
+            <div id="jobPostingsList">
+                <div class="text-center py-4">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mt-2">Loading university positions...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Job Posting Creation/Edit Modal -->
+<div class="modal fade" id="jobPostingModal" tabindex="-1" aria-labelledby="jobPostingModalLabel" aria-hidden="true" data-bs-backdrop="static">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="jobPostingModalLabel">
+                    <i class="fas fa-briefcase me-2"></i>Create University Position
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            
+            <div class="modal-body">
+                <form id="jobPostingForm">
+                    <div class="row">
+                        <!-- Left Column: Basic Information -->
+                        <div class="col-md-6">
+                            <h6 class="text-primary mb-3"><i class="fas fa-info-circle me-1"></i>Basic Information</h6>
+                            
+                            <!-- Position Type -->
+                            <div class="mb-3">
+                                <label for="jobPostingPositionType" class="form-label">Position Type <span class="text-danger">*</span></label>
+                                <select class="form-select" id="jobPostingPositionType" name="position_type_id" required onchange="updatePositionCategory()">
+                                    <option value="">Select Position Type</option>
+                                    <option value="1">Part-time Teaching</option>
+                                    <option value="2">Regular Faculty</option>
+                                    <option value="3">Non-Teaching Personnel</option>
+                                    <option value="4">Job Order</option>
+                                </select>
+                            </div>
+                            
+                            <!-- Position Title -->
+                            <div class="mb-3">
+                                <label for="positionTitle" class="form-label">Position Title <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="positionTitle" name="position_title" 
+                                       placeholder="e.g., FOUR (4) INSTRUCTORS" required>
+                                <div class="form-text">Use format: NUMBER (N) POSITION_NAME</div>
+                            </div>
+                            
+                            <!-- Specific Role -->
+                            <div class="mb-3">
+                                <label for="specificRole" class="form-label">Specific Role/Specialization</label>
+                                <input type="text" class="form-control" id="specificRole" name="specific_role" 
+                                       placeholder="e.g., Certified Public Accountant (CPA)">
+                            </div>
+                            
+                            <!-- Quantity Needed -->
+                            <div class="mb-3">
+                                <label for="quantityNeeded" class="form-label">Number of Positions <span class="text-danger">*</span></label>
+                                <input type="number" class="form-control" id="quantityNeeded" name="quantity_needed" 
+                                       min="1" max="50" value="1" required>
+                            </div>
+                            
+                            <!-- Department/Office -->
+                            <div class="mb-3">
+                                <label for="departmentOffice" class="form-label">Department/Office</label>
+                                <input type="text" class="form-control" id="departmentOffice" name="department_office" 
+                                       placeholder="e.g., College of Business Administration and Accountancy">
+                            </div>
+                        </div>
+                        
+                        <!-- Right Column: Administrative Details -->
+                        <div class="col-md-6">
+                            <h6 class="text-primary mb-3"><i class="fas fa-cogs me-1"></i>Administrative Details</h6>
+                            
+                            <!-- Employment Period -->
+                            <div class="mb-3">
+                                <label for="employmentPeriod" class="form-label">Employment Period</label>
+                                <input type="text" class="form-control" id="employmentPeriod" name="employment_period" 
+                                       placeholder="e.g., First Semester, Academic Year 2025-2026">
+                            </div>
+                            
+                            <!-- Plantilla Item No -->
+                            <div class="mb-3">
+                                <label for="plantillaItemNo" class="form-label">Plantilla Item No.</label>
+                                <input type="text" class="form-control" id="plantillaItemNo" name="plantilla_item_no" 
+                                       placeholder="e.g., LSPCB-ADOF4-105-2022">
+                            </div>
+                            
+                            <!-- Salary Information -->
+                            <div class="row">
+                                <div class="col-6">
+                                    <div class="mb-3">
+                                        <label for="salaryGrade" class="form-label">Salary Grade</label>
+                                        <input type="number" class="form-control" id="salaryGrade" name="salary_grade" 
+                                               min="1" max="30" placeholder="e.g., 15">
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="mb-3">
+                                        <label for="salaryAmount" class="form-label">Salary Amount (₱)</label>
+                                        <input type="number" class="form-control" id="salaryAmount" name="salary_amount" 
+                                               step="0.01" placeholder="e.g., 40208.00">
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Application Deadline -->
+                            <div class="mb-3">
+                                <label for="applicationDeadline" class="form-label">Application Deadline <span class="text-danger">*</span></label>
+                                <input type="date" class="form-control" id="applicationDeadline" name="application_deadline" required>
+                            </div>
+                            
+                            <!-- Contact Email -->
+                            <div class="mb-3">
+                                <label for="contactEmail" class="form-label">Contact Email</label>
+                                <input type="email" class="form-control" id="contactEmail" name="contact_email" 
+                                       placeholder="Will use HR default if empty">
+                            </div>
+                            
+                            <!-- Job Reference Number -->
+                            <div class="mb-3">
+                                <label for="jobReferenceNumber" class="form-label">Job Reference Number</label>
+                                <input type="text" class="form-control" id="jobReferenceNumber" name="job_reference_number" 
+                                       placeholder="Will auto-generate if empty">
+                                <div class="form-text">Format: YYYY-LSPU-JOBS-XXX</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Qualifications Section -->
+                    <div class="mt-4">
+                        <h6 class="text-primary mb-3"><i class="fas fa-graduation-cap me-1"></i>Qualifications & Requirements</h6>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <!-- Education -->
+                                <div class="mb-3">
+                                    <label for="educationRequirements" class="form-label">Education <span class="text-danger">*</span></label>
+                                    <textarea class="form-control" id="educationRequirements" name="education_requirements" 
+                                              rows="3" required placeholder="e.g., Bachelor's degree in the area of specialization, with relevant master's degree or master's degree units earned"></textarea>
+                                </div>
+                                
+                                <!-- Training -->
+                                <div class="mb-3">
+                                    <label for="trainingRequirements" class="form-label">Training</label>
+                                    <textarea class="form-control" id="trainingRequirements" name="training_requirements" 
+                                              rows="2" placeholder="e.g., 4 hours of relevant training"></textarea>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <!-- Experience -->
+                                <div class="mb-3">
+                                    <label for="experienceRequirements" class="form-label">Experience</label>
+                                    <textarea class="form-control" id="experienceRequirements" name="experience_requirements" 
+                                              rows="2" placeholder="e.g., 1 year of relevant experience"></textarea>
+                                </div>
+                                
+                                <!-- Eligibility -->
+                                <div class="mb-3">
+                                    <label for="eligibilityRequirements" class="form-label">Eligibility</label>
+                                    <textarea class="form-control" id="eligibilityRequirements" name="eligibility_requirements" 
+                                              rows="3" placeholder="e.g., Career Service (Professional) Second Level Eligibility"></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Preview Section -->
+                    <div class="mt-4 d-none" id="previewSection">
+                        <h6 class="text-primary mb-3"><i class="fas fa-eye me-1"></i>Preview</h6>
+                        <div id="jobPostingPreview" class="border p-3 rounded bg-light">
+                            <!-- Preview will be loaded here -->
+                        </div>
+                    </div>
+                </form>
+            </div>
+            
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" onclick="togglePreview()">
+                    <i class="fas fa-eye me-1"></i>Preview
+                </button>
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-secondary" onclick="saveJobPostingDraft()">
+                    <i class="fas fa-save me-1"></i>Save as Draft
+                </button>
+                <button type="button" class="btn btn-primary" onclick="publishJobPosting()">
+                    <i class="fas fa-paper-plane me-1"></i>Publish Position
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Job Posting Details Modal -->
+<div class="modal fade" id="jobPostingDetailsModal" tabindex="-1" aria-labelledby="jobPostingDetailsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="jobPostingDetailsModalLabel">
+                    <i class="fas fa-info-circle me-2"></i>Position Details
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            
+            <div class="modal-body" id="jobPostingDetailsContent">
+                <!-- Job posting details will be loaded here -->
+            </div>
+            
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-success" id="viewApplicationsBtn" onclick="viewJobApplications()">
+                    <i class="fas fa-users me-1"></i>View Applications
+                </button>
+                <button type="button" class="btn btn-primary" id="generatePostingBtn" onclick="generateJobPosting()">
+                    <i class="fas fa-file-download me-1"></i>Generate Posting
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.position-card {
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+    margin-bottom: 15px;
+}
+
+.position-card:hover {
+    border-color: #0d6efd;
+    box-shadow: 0 2px 8px rgba(13, 110, 253, 0.15);
+}
+
+.position-card .card-header {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-bottom: 1px solid #dee2e6;
+}
+
+.position-status {
+    font-size: 0.75rem;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-weight: 500;
+}
+
+.status-published {
+    background-color: #d1e7dd;
+    color: #0a3622;
+}
+
+.status-draft {
+    background-color: #fff3cd;
+    color: #664d03;
+}
+
+.status-closed {
+    background-color: #f8d7da;
+    color: #58151c;
+}
+
+.status-archived {
+    background-color: #e2e3e5;
+    color: #495057;
+}
+
+.qualification-section {
+    background: #f8f9fa;
+    border-radius: 6px;
+    padding: 12px;
+    margin: 8px 0;
+}
+
+.qualification-section h6 {
+    margin-bottom: 8px;
+    color: #495057;
+}
+
+.form-text.preview-hint {
+    font-style: italic;
+    color: #6c757d;
+}
+
+#jobPostingPreview {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.modal-xl .modal-dialog {
+    max-width: 1200px;
+}
+
+@media (max-width: 768px) {
+    .modal-xl .modal-dialog {
+        max-width: 95%;
+    }
+}
+</style>

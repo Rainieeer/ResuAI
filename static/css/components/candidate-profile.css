@@ -1,0 +1,1294 @@
+/* Candidate Profile Modal Styles */
+
+/* Modal Enhancements */
+#candidateDetailsModal.modal .modal-dialog {
+    max-width: 900px !important;
+    margin: 1rem auto;
+    display: flex;
+    align-items: center;
+    min-height: calc(100vh - 2rem);
+}
+
+#candidateDetailsModal.modal .modal-dialog.modal-xl {
+    max-width: 900px !important;
+}
+
+#candidateDetailsModal .modal-content {
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+    max-height: 85vh !important;
+    display: flex !important;
+    flex-direction: column !important;
+    width: 100%;
+}
+
+#candidateDetailsModal .modal-header {
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    color: white;
+    padding: 1.5rem 2rem;
+    border-bottom: none;
+    flex-shrink: 0;
+}
+
+#candidateDetailsModal .modal-header h5 {
+    margin: 0;
+    font-weight: 600;
+    font-size: 1.4rem;
+}
+
+#candidateDetailsModal .btn-close {
+    filter: brightness(0) invert(1);
+    opacity: 0.8;
+}
+
+#candidateDetailsModal .btn-close:hover {
+    opacity: 1;
+}
+
+/* PDS Specific Styles */
+.personal-info-section, .government-ids-section, .eligibility-section, 
+.work-experience-section, .training-section, .volunteer-section, .references-section {
+    margin-bottom: 2rem;
+}
+
+.personal-info-container {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-top: 1rem;
+}
+
+.info-group {
+    margin-bottom: 1.5rem;
+}
+
+.info-group h6 {
+    color: var(--primary-color);
+    font-weight: 600;
+    font-size: 1rem;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid var(--primary-color);
+}
+
+.info-item {
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: 0.75rem;
+    padding: 0.5rem 0;
+}
+
+.info-item .label {
+    font-weight: 600;
+    color: #555;
+    min-width: 120px;
+    margin-right: 1rem;
+    flex-shrink: 0;
+}
+
+.info-item .value {
+    color: #333;
+    flex: 1;
+    word-break: break-word;
+}
+
+/* Work Experience styling */
+.work-experience-item {
+    background: #fff;
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    transition: all 0.3s ease;
+}
+
+.work-experience-item:hover {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+}
+
+.work-experience-item h6 {
+    color: var(--primary-color);
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.work-experience-item .company {
+    font-weight: 500;
+    color: #666;
+    margin-bottom: 0.5rem;
+}
+
+.work-experience-item .date-range {
+    color: #888;
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+}
+
+.work-experience-item .description {
+    color: #555;
+    font-size: 0.95rem;
+    line-height: 1.5;
+}
+
+/* Enhanced PDS sections styling */
+.pds-sections {
+    margin-top: 1rem;
+    display: none; /* Hidden by default, shown via JavaScript */
+}
+
+.pds-sections .section {
+    background: #fff;
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    transition: all 0.3s ease;
+}
+
+.pds-sections .section:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.pds-sections .section h4 {
+    color: var(--primary-color);
+    font-weight: 600;
+    font-size: 1.1rem;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid var(--primary-color);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.pds-sections .section h4 i {
+    color: var(--secondary-color);
+}
+
+/* Table-like styling for organized data */
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1rem;
+}
+
+.data-table th,
+.data-table td {
+    padding: 0.75rem;
+    text-align: left;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.data-table th {
+    background-color: #f8f9fa;
+    font-weight: 600;
+    color: var(--primary-color);
+}
+
+.data-table tr:hover {
+    background-color: #f8f9fa;
+}
+
+/* Government IDs styling */
+.government-ids-container .id-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem;
+    background: #f8f9fa;
+    border-radius: 6px;
+    margin-bottom: 0.5rem;
+}
+
+.government-ids-container .id-item strong {
+    color: var(--primary-color);
+    min-width: 120px;
+}
+
+/* Eligibility items */
+.eligibility-item,
+.training-item,
+.volunteer-item,
+.reference-item {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    /* border-left: 4px solid var(--primary-color); */
+}
+
+.eligibility-item h6,
+.training-item h6,
+.volunteer-item h6,
+.reference-item h6 {
+    color: var(--primary-color);
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+}
+
+.eligibility-item .text-muted,
+.training-item .text-muted,
+.volunteer-item .text-muted,
+.reference-item .text-muted {
+    font-size: 0.9rem;
+    color: #666;
+    margin-bottom: 0.5rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .personal-info-container .row {
+        margin: 0;
+    }
+    
+    .personal-info-container .col-md-6,
+    .personal-info-container .col-md-3,
+    .personal-info-container .col-md-12 {
+        padding: 0.5rem 0;
+    }
+    
+    .info-item {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .info-item .label {
+        min-width: auto;
+        margin-right: 0;
+        margin-bottom: 0.25rem;
+    }
+} 
+.education-section, .languages-section, .training-section {
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+}
+
+.personal-info-section h5, .government-ids-section h5, .eligibility-section h5,
+.education-section h5, .languages-section h5, .training-section h5 {
+    color: var(--primary-color);
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+    font-size: 1.1rem;
+}
+
+.info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 0.5rem;
+}
+
+.info-item {
+    display: block;
+    font-size: 0.9rem;
+    color: #555;
+}
+
+.ids-list, .eligibility-list, .languages-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.id-tag, .eligibility-tag, .language-tag {
+    background: #f8f9fa;
+    color: var(--text-primary);
+    padding: 0.25rem 0.75rem;
+    border-radius: 12px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    border: 1px solid #e0e0e0;
+}
+
+.education-list, .training-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.education-item, .training-item {
+    background: white;
+    padding: 0.75rem;
+    border-radius: 6px;
+}
+
+.education-item strong, .training-item strong {
+    color: var(--primary-color);
+    font-weight: 600;
+}
+
+.institution, .training-dates {
+    color: #666;
+    font-size: 0.9rem;
+}
+
+.year, .training-hours {
+    color: #888;
+    font-size: 0.85rem;
+    margin-left: 0.5rem;
+}
+
+/* Profile Container */
+.candidate-profile {
+    padding: 0;
+}
+
+#candidateDetailsModal .modal-body {
+    padding: 0;
+    overflow-y: auto;
+    flex: 1 !important;
+    max-height: calc(85vh - 200px) !important;
+    min-height: 300px;
+}
+
+/* Profile Header */
+.profile-header {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+    padding: 2.5rem;
+    background: linear-gradient(135deg, var(--bg-secondary), var(--bg-tertiary));
+    border-bottom: 1px solid var(--border-color);
+    position: relative;
+    overflow: hidden;
+}
+
+.profile-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    background: var(--gradient-primary);
+}
+
+.profile-header::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -50%;
+    width: 100%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255,255,255,0.05) 0%, transparent 50%);
+    pointer-events: none;
+}
+
+/* Profile Image */
+.profile-image {
+    flex-shrink: 0;
+    width: 90px;
+    height: 90px;
+    background: var(--gradient-primary);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 2.8rem;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    border: 3px solid rgba(255, 255, 255, 0.2);
+}
+
+.profile-image::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(45deg, transparent 30%, rgba(255,255,255,0.2) 50%, transparent 70%);
+    transform: translateX(-100%);
+    transition: transform 0.6s ease;
+}
+
+.profile-image:hover::before {
+    transform: translateX(100%);
+}
+
+.profile-image:hover {
+    transform: scale(1.05);
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.2);
+}
+
+/* Profile Info */
+.profile-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.profile-info h3 {
+    margin: 0 0 0.75rem 0;
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+}
+
+.candidate-contact {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.candidate-contact .email,
+.candidate-contact .phone {
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.5rem 0;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.candidate-contact .email:hover,
+.candidate-contact .phone:hover {
+    color: var(--primary-color);
+    background: var(--bg-tertiary);
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+}
+
+.candidate-contact .email::before {
+    content: '';
+    width: 20px;
+    height: 20px;
+    background: linear-gradient(135deg, #4285f4, #34a853);
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0;
+    position: relative;
+    flex-shrink: 0;
+}
+
+.candidate-contact .email::after {
+    content: '✉';
+    position: absolute;
+    color: white;
+    font-size: 12px;
+    left: 6px;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.candidate-contact .phone::before {
+    content: '';
+    width: 20px;
+    height: 20px;
+    background: linear-gradient(135deg, #00bcd4, #009688);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0;
+    position: relative;
+    flex-shrink: 0;
+}
+
+.candidate-contact .phone::after {
+    content: '📞';
+    position: absolute;
+    color: white;
+    font-size: 10px;
+    left: 6px;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+/* Match Score */
+.match-score {
+    flex-shrink: 0;
+    text-align: center;
+}
+
+.score-circle {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 1.2rem;
+    color: white;
+    margin: 0 auto 0.75rem;
+    position: relative;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+    border: 3px solid rgba(255, 255, 255, 0.2);
+}
+
+.score-circle.score-excellent {
+    background: var(--gradient-success);
+}
+
+.score-circle.score-good {
+    background: var(--gradient-primary);
+}
+
+.score-circle.score-fair {
+    background: var(--gradient-warning);
+}
+
+.score-circle.score-poor {
+    background: var(--gradient-danger);
+}
+
+.score-label {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Profile Sections */
+.profile-sections {
+    padding: 2rem;
+    display: grid;
+    gap: 2rem;
+}
+
+.profile-sections .section {
+    background: var(--bg-secondary);
+    border-radius: 12px;
+    padding: 1.5rem;
+    transition: all var(--transition-normal);
+}
+
+.profile-sections .section:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+}
+
+.profile-sections .section h4 {
+    margin: 0 0 1rem 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.profile-sections .section h4 i {
+    width: 24px;
+    height: 24px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+}
+
+.skills-section h4 i {
+    background: var(--primary-color);
+    color: white;
+}
+
+.education-section h4 i {
+    background: var(--info-color);
+    color: white;
+}
+
+.matched-skills-section h4 i {
+    background: var(--success-color);
+    color: white;
+}
+
+.missing-skills-section h4 i {
+    background: var(--danger-color);
+    color: white;
+}
+
+/* Education Items */
+.education-container {
+    display: grid;
+    gap: 1rem;
+}
+
+.education-item {
+    background: var(--bg-tertiary);
+    padding: 1rem;
+    border-radius: 8px;
+    /* border-left: 3px solid var(--info-color); */
+}
+
+.education-item h6 {
+    margin: 0 0 0.25rem 0;
+    font-weight: 600;
+    color: var(--text-primary);
+    font-size: 0.95rem;
+}
+
+.education-item .text-muted {
+    margin: 0 0 0.5rem 0;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.education-item p:last-child {
+    margin: 0;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    line-height: 1.4;
+}
+
+/* Empty State Styling */
+.skills-container p,
+.education-container p,
+.matched-skills-container p,
+.missing-skills-container p {
+    margin: 0;
+    color: var(--text-secondary);
+    font-style: italic;
+    text-align: center;
+    padding: 1rem;
+    background: var(--bg-tertiary);
+    border-radius: 8px;
+    font-size: 0.9rem;
+}
+
+/* Modal Footer - Clean and Simple */
+#candidateDetailsModal .modal-footer {
+    background: var(--bg-secondary);
+    border-top: 1px solid var(--border-color);
+    padding: 1.5rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+}
+
+/* Remove button on the left */
+#candidateDetailsModal .modal-footer #removeCandidate {
+    background: var(--gradient-danger);
+    color: white;
+    padding: 0.6rem 1.2rem;
+    border-radius: 8px;
+    border: none;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+#candidateDetailsModal .modal-footer #removeCandidate:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+}
+
+/* Action buttons grouped on the right */
+.modal-footer-actions {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+}
+
+#candidateDetailsModal .modal-footer .btn-secondary,
+#candidateDetailsModal .modal-footer #rejectCandidate,
+#candidateDetailsModal .modal-footer #shortlistCandidate {
+    padding: 0.6rem 1.2rem;
+    border-radius: 8px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+#candidateDetailsModal .modal-footer .btn-secondary {
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+}
+
+#candidateDetailsModal .modal-footer #rejectCandidate {
+    background: var(--gradient-warning);
+    color: white;
+    border: none;
+}
+
+#candidateDetailsModal .modal-footer #shortlistCandidate {
+    background: var(--gradient-success);
+    color: white;
+    border: none;
+}
+
+#candidateDetailsModal .modal-footer .btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    #candidateDetailsModal .modal-dialog {
+        margin: 0.5rem;
+        max-width: none;
+        min-height: calc(100vh - 1rem);
+    }
+    
+    #candidateDetailsModal .modal-content {
+        max-height: calc(100vh - 1rem);
+    }
+    
+    #candidateDetailsModal .modal-body {
+        max-height: calc(100vh - 300px);
+    }
+    
+    .profile-header {
+        flex-direction: column;
+        text-align: center;
+        gap: 1rem;
+        padding: 1.5rem;
+    }
+    
+    .candidate-contact {
+        align-items: center;
+    }
+    
+    .profile-sections {
+        padding: 1.5rem;
+        gap: 1.5rem;
+    }
+    
+    .profile-sections .section {
+        padding: 1rem;
+    }
+    
+    #candidateDetailsModal .modal-footer {
+        flex-direction: column;
+        gap: 1rem;
+        padding: 1.5rem;
+    }
+    
+    .modal-footer .action-group {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .modal-footer .primary-actions {
+        margin-left: 0;
+        width: 100%;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+    
+    #candidateDetailsModal .modal-footer .btn {
+        width: 100%;
+        min-width: auto;
+        padding: 1rem 1.5rem;
+        font-size: 1rem;
+    }
+}
+
+/* Dark Theme Adjustments */
+[data-theme="dark"] .profile-header {
+    background: linear-gradient(135deg, var(--bg-secondary), var(--bg-primary));
+}
+
+[data-theme="dark"] .profile-sections .section {
+    background: var(--bg-primary);
+    border-left-color: var(--primary-color-light);
+}
+
+[data-theme="dark"] .education-item {
+    background: var(--bg-secondary);
+}
+
+[data-theme="dark"] .skill-badge {
+    background: var(--bg-primary);
+    border-color: var(--border-color-dark);
+}
+
+/* Animation Enhancements */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.profile-sections .section {
+    animation: fadeInUp 0.4s ease-out;
+}
+
+.profile-sections .section:nth-child(1) { animation-delay: 0.1s; }
+.profile-sections .section:nth-child(2) { animation-delay: 0.2s; }
+.profile-sections .section:nth-child(3) { animation-delay: 0.3s; }
+.profile-sections .section:nth-child(4) { animation-delay: 0.4s; }
+
+/* Score Circle Animation */
+@keyframes scoreAnimation {
+    from {
+        transform: scale(0.8);
+        opacity: 0;
+    }
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+@keyframes scorePulse {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.05);
+    }
+}
+
+.score-circle {
+    animation: scoreAnimation 0.5s ease-out;
+}
+
+.score-circle:hover {
+    animation: scorePulse 2s ease-in-out infinite;
+}
+
+/* Button Ripple Effect */
+@keyframes ripple {
+    0% {
+        transform: scale(0);
+        opacity: 1;
+    }
+    100% {
+        transform: scale(4);
+        opacity: 0;
+    }
+}
+
+.btn-ripple {
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-ripple::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 5px;
+    height: 5px;
+    background: rgba(255, 255, 255, 0.5);
+    opacity: 0;
+    border-radius: 100%;
+    transform: scale(1, 1) translate(-50%);
+    transform-origin: 50% 50%;
+}
+
+.btn-ripple:focus:not(:active)::after {
+    animation: ripple 1s ease-out;
+}
+
+/* PDS-Specific Styles */
+.pds-sections {
+    border-top: 2px solid #e9ecef;
+    margin-top: 1rem;
+    padding-top: 1rem;
+}
+
+.government-ids-container .id-item,
+.eligibility-container .eligibility-item,
+.training-container .training-item,
+.volunteer-container .volunteer-item,
+.references-container .reference-item {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 0.75rem;
+}
+
+.government-ids-container .id-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.government-ids-container .id-item strong {
+    color: var(--primary-color);
+    font-weight: 600;
+}
+
+.eligibility-container .eligibility-item h6,
+.training-container .training-item h6,
+.volunteer-container .volunteer-item h6,
+.references-container .reference-item h6 {
+    color: var(--primary-color);
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.eligibility-container .eligibility-item .text-muted,
+.training-container .training-item .text-muted,
+.volunteer-container .volunteer-item .text-muted,
+.references-container .reference-item .text-muted {
+    font-size: 0.875rem;
+    margin-bottom: 0.25rem;
+}
+
+.pds-sections .section h4 {
+    color: var(--primary-color);
+    font-weight: 600;
+    border-bottom: 2px solid #e9ecef;
+    padding-bottom: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.pds-sections .section h4 i {
+    margin-right: 0.5rem;
+    width: 20px;
+    text-align: center;
+}
+
+/* Special styling for government IDs grid */
+.government-ids-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 0.75rem;
+}
+
+.government-ids-container .id-item {
+    flex-direction: column;
+    align-items: flex-start;
+    text-align: left;
+}
+
+/* Responsive adjustments for PDS sections */
+@media (max-width: 768px) {
+    .government-ids-container {
+        grid-template-columns: 1fr;
+    }
+    
+    .pds-sections .section {
+        margin-bottom: 1.5rem;
+    }
+}
+
+/* Assessment Results Section Styles */
+.assessment-results-section {
+    background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-top: 1rem;
+}
+
+.assessment-overview {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.score-circle-large {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1rem;
+    position: relative;
+    background: conic-gradient(var(--success-color), var(--warning-color), var(--danger-color));
+    padding: 4px;
+}
+
+.score-circle-large::before {
+    content: '';
+    position: absolute;
+    inset: 4px;
+    border-radius: 50%;
+    background: white;
+}
+
+.score-circle-large .score-value {
+    position: relative;
+    z-index: 1;
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--text-dark);
+}
+
+.score-circle-large.high {
+    background: conic-gradient(var(--success-color) 0deg, var(--success-color) 360deg);
+}
+
+.score-circle-large.medium {
+    background: conic-gradient(var(--warning-color) 0deg, var(--warning-color) 360deg);
+}
+
+.score-circle-large.low {
+    background: conic-gradient(var(--danger-color) 0deg, var(--danger-color) 360deg);
+}
+
+.score-label {
+    font-size: 1.1rem;
+    color: var(--text-muted);
+    margin: 0;
+}
+
+.assessment-breakdown h6 {
+    color: var(--primary-color);
+    font-weight: 600;
+    margin-bottom: 1rem;
+    border-bottom: 2px solid var(--primary-color);
+    padding-bottom: 0.5rem;
+}
+
+.criteria-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.criteria-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.75rem;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.criteria-label {
+    min-width: 200px;
+    font-weight: 500;
+    color: var(--text-dark);
+}
+
+.criteria-bar {
+    flex: 1;
+    height: 12px;
+    background: #e9ecef;
+    border-radius: 6px;
+    overflow: hidden;
+    position: relative;
+}
+
+.criteria-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--success-color), var(--primary-color));
+    border-radius: 6px;
+    transition: width 0.3s ease;
+}
+
+.criteria-score {
+    min-width: 50px;
+    text-align: right;
+    font-weight: 600;
+    color: var(--primary-color);
+}
+
+/* Educational Background Section Styles */
+.educational-background-container .education-item {
+    background: white;
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 0.75rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.educational-background-container .education-item h6 {
+    color: var(--primary-color);
+    margin-bottom: 0.5rem;
+    text-transform: capitalize;
+}
+
+.educational-background-container .school {
+    font-weight: 500;
+    color: var(--text-dark);
+    margin-bottom: 0.25rem;
+}
+
+.educational-background-container .degree {
+    color: var(--text-muted);
+    margin-bottom: 0.25rem;
+}
+
+.educational-background-container .honors {
+    color: var(--warning-color);
+    font-weight: 500;
+    margin-top: 0.5rem;
+}
+
+.educational-background-container .honors i {
+    margin-right: 0.25rem;
+}
+
+/* Graduate Studies Specific Styles */
+.educational-background-container .education-item.graduate-studies {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-left: 4px solid var(--success-color);
+    position: relative;
+    overflow: hidden;
+}
+
+.educational-background-container .education-item.graduate-studies::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg, var(--success-color), var(--primary-color));
+    opacity: 0.1;
+    border-radius: 0 0 0 60px;
+}
+
+.educational-background-container .education-item.graduate-studies h6 {
+    color: var(--success-color);
+    font-weight: 600;
+    border-bottom: 2px solid var(--success-color);
+    padding-bottom: 0.5rem;
+    margin-bottom: 0.75rem;
+}
+
+.educational-background-container .education-item.graduate-studies .degree {
+    color: var(--success-color);
+    font-weight: 500;
+    font-size: 1.05em;
+}
+
+.educational-background-container .education-item.graduate-studies .badge {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+}
+
+.educational-background-container .education-item.graduate-studies .badge.bg-success {
+    background-color: var(--success-color) !important;
+}
+
+.educational-background-container .education-item.graduate-studies .badge.bg-purple {
+    background-color: #6f42c1 !important;
+}
+
+/* Education Level Colors in Tables */
+.education-level.text-purple {
+    color: #6f42c1 !important;
+}
+
+.education-level.text-success {
+    color: var(--success-color) !important;
+}
+
+.education-level.text-info {
+    color: var(--info-color) !important;
+}
+
+/* Mobile Responsive Styles */
+@media (max-width: 768px) {
+  #candidateDetailsModal.modal .modal-dialog {
+    max-width: 95vw;
+    margin: 0.5rem auto;
+    max-height: calc(100vh - 1rem);
+  }
+  
+  #candidateDetailsModal.modal .modal-dialog.modal-xl {
+    max-width: 95vw;
+    margin: 0.5rem auto;
+  }
+  
+  #candidateDetailsModal .modal-body {
+    padding: 1rem;
+    max-height: calc(85vh - 150px);
+  }
+  
+  .profile-header {
+    flex-direction: column;
+    text-align: center;
+    gap: 1rem;
+    padding: 1rem;
+  }
+  
+  .profile-info {
+    order: 1;
+  }
+  
+  .match-score {
+    order: 2;
+  }
+  
+  .profile-image {
+    order: 0;
+    margin-bottom: 0.5rem;
+  }
+  
+  .profile-sections {
+    padding: 1rem;
+  }
+  
+  .profile-sections .section {
+    padding: 1rem;
+    margin-bottom: 1rem;
+  }
+}
+
+@media (max-width: 576px) {
+  #candidateDetailsModal.modal .modal-dialog {
+    max-width: 100vw;
+    margin: 0;
+    max-height: 100vh;
+    min-height: 100vh;
+  }
+  
+  #candidateDetailsModal .modal-content {
+    border-radius: 0;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    max-height: 100vh;
+  }
+  
+  #candidateDetailsModal .modal-body {
+    padding: 0.75rem;
+    flex: 1;
+    overflow-y: auto;
+    max-height: none;
+  }
+  
+  #candidateDetailsModal .modal-header {
+    padding: 0.75rem;
+    border-radius: 0;
+  }
+  
+  #candidateDetailsModal .modal-footer {
+    padding: 0.75rem;
+    border-radius: 0;
+  }
+  
+  .profile-header {
+    padding: 0.75rem;
+  }
+  
+  .profile-sections {
+    padding: 0.5rem;
+  }
+  
+  .profile-sections .section {
+    padding: 0.75rem;
+    margin-bottom: 0.75rem;
+  }
+  
+  .candidate-name {
+    font-size: 1.25rem;
+  }
+  
+  .score-circle {
+    width: 60px;
+    height: 60px;
+  }
+  
+  .score-value {
+    font-size: 1rem;
+  }
+}

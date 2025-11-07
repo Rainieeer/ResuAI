@@ -291,6 +291,151 @@ textarea.form-control {
   color: var(--danger-color);
 }
 
+/* Certifications Input & Tags */
+.certifications-input-container {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 0.75rem;
+  min-height: 120px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  transition: all var(--transition-fast);
+}
+
+.certifications-input-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.certifications-input-wrapper input {
+  border: none;
+  background: transparent;
+  font-size: 0.9rem;
+  color: var(--text-primary);
+  outline: none;
+  flex: 1;
+}
+
+.certifications-input-wrapper input::placeholder {
+  color: var(--text-muted);
+}
+
+.certification-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  min-height: 32px;
+  align-items: flex-start;
+}
+
+.certification-tags:empty::before {
+  content: 'No certifications added yet. Type and press Enter to add.';
+  color: var(--text-muted);
+  font-style: italic;
+  font-size: 0.875rem;
+  display: flex;
+  align-items: center;
+  height: 32px;
+}
+
+.certifications-input-container:focus-within,
+.certifications-input-container:hover {
+  border-color: var(--accent-color);
+  background: var(--bg-primary);
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.05);
+}
+
+/* Certification Tags */
+.certification-tag {
+  background: linear-gradient(135deg, var(--accent-color), #059669);
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius-xl);
+  font-size: 0.875rem;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  box-shadow: var(--shadow-sm);
+  transition: all var(--transition-fast);
+  animation: certificationFadeIn 0.3s ease-out;
+  position: relative;
+  overflow: hidden;
+}
+
+.certification-tag::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.1);
+  transform: translateX(-100%);
+  transition: transform 0.3s ease;
+}
+
+.certification-tag:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.certification-tag:hover::before {
+  transform: translateX(0);
+}
+
+.certification-tag i {
+  cursor: pointer;
+  width: 16px;
+  height: 16px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  transition: all var(--transition-fast);
+}
+
+.certification-tag i:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: scale(1.1);
+}
+
+/* Certification Tag Animation */
+@keyframes certificationFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.8) translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.certification-tag.removing {
+  animation: certificationFadeOut 0.2s ease-in forwards;
+}
+
+@keyframes certificationFadeOut {
+  to {
+    opacity: 0;
+    transform: scale(0.8) translateY(-10px);
+  }
+}
+
+/* Certifications Counter */
+.certifications-counter {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  text-align: right;
+  margin-top: 0.25rem;
+}
+
 /* Job Requirements Section Enhancement */
 .job-requirements-section {
   background: var(--bg-secondary);
@@ -440,5 +585,170 @@ textarea.form-control {
   
   .search-box {
     max-width: 100%;
+  }
+}
+
+/* Drag and Drop Styles */
+.upload-zone {
+  border: 2px dashed var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 2rem;
+  text-align: center;
+  transition: all var(--transition-normal);
+  background: var(--bg-secondary);
+  cursor: pointer;
+}
+
+.upload-zone:hover {
+  border-color: var(--primary-color);
+  background: var(--bg-primary);
+  transform: translateY(-2px);
+}
+
+.upload-zone.drag-over {
+  border-color: var(--success-color);
+  background: rgba(34, 197, 94, 0.05);
+  transform: scale(1.02);
+}
+
+.upload-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.upload-icon {
+  font-size: 3rem;
+  color: var(--primary-color);
+  opacity: 0.7;
+}
+
+.upload-label {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.browse-link {
+  color: var(--primary-color);
+  text-decoration: underline;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.browse-link:hover {
+  color: var(--primary-dark);
+}
+
+.supported-formats {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  margin-top: 0.5rem;
+}
+
+.supported-formats i {
+  font-size: 1.25rem;
+}
+
+/* File Item Styles */
+.file-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  margin-bottom: 0.5rem;
+  transition: all var(--transition-fast);
+}
+
+.file-item:hover {
+  background: var(--bg-primary);
+  border-color: var(--primary-color);
+}
+
+.file-icon {
+  font-size: 1.5rem;
+  width: 2rem;
+  text-align: center;
+}
+
+.file-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.file-name {
+  font-weight: 500;
+  color: var(--text-primary);
+  font-size: 0.95rem;
+}
+
+.file-size {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+/* Upload Actions */
+.upload-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  margin-top: 1rem;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.upload-stats {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.25rem;
+  font-size: 0.875rem;
+  color: var(--text-muted);
+}
+
+/* Mobile responsiveness for drag and drop */
+@media (max-width: 768px) {
+  .upload-zone {
+    padding: 1.5rem;
+  }
+  
+  .upload-icon {
+    font-size: 2.5rem;
+  }
+  
+  .upload-label {
+    font-size: 1.1rem;
+  }
+  
+  .upload-actions {
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  .action-buttons {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .upload-stats {
+    align-items: center;
   }
 }

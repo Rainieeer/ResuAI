@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Privacy Agreement - ResuAI</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --secondary-color: #1e40af;
+            --accent-color: #3b82f6;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --danger-color: #ef4444;
+            --dark-color: #1f2937;
+            --light-bg: #f8fafc;
+            --border-color: #e5e7eb;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .privacy-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem 1rem;
+        }
+
+        .privacy-card {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+            max-width: 800px;
+            width: 100%;
+            max-height: 90vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .privacy-header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 2rem;
+            text-align: center;
+        }
+
+        .privacy-header h1 {
+            margin: 0;
+            font-size: 2rem;
+            font-weight: 600;
+        }
+
+        .privacy-header p {
+            margin: 0.5rem 0 0 0;
+            opacity: 0.9;
+        }
+
+        .privacy-content {
+            padding: 2rem;
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        .privacy-section {
+            margin-bottom: 2rem;
+        }
+
+        .privacy-section h3 {
+            color: var(--primary-color);
+            font-weight: 600;
+            margin-bottom: 1rem;
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 0.5rem;
+        }
+
+        .privacy-section p, .privacy-section li {
+            color: #374151;
+            line-height: 1.6;
+            margin-bottom: 0.75rem;
+        }
+
+        .privacy-section ul {
+            padding-left: 1.5rem;
+        }
+
+        .highlight-box {
+            background: #fef3c7;
+            border-left: 4px solid var(--warning-color);
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .important-box {
+            background: #fecaca;
+            border-left: 4px solid var(--danger-color);
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .info-box {
+            background: #dbeafe;
+            border-left: 4px solid var(--primary-color);
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .privacy-footer {
+            background: var(--light-bg);
+            padding: 2rem;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .agreement-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            padding: 1rem;
+            background: white;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            transition: border-color 0.3s ease;
+        }
+
+        .agreement-checkbox:hover {
+            border-color: var(--primary-color);
+        }
+
+        .agreement-checkbox input[type="checkbox"] {
+            width: 1.5rem;
+            height: 1.5rem;
+            accent-color: var(--primary-color);
+        }
+
+        .agreement-checkbox label {
+            font-weight: 500;
+            color: var(--dark-color);
+            margin: 0;
+            cursor: pointer;
+        }
+
+        .btn-primary {
+            background: var(--primary-color);
+            border: none;
+            padding: 0.75rem 2rem;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            background: var(--secondary-color);
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: var(--border-color);
+            color: var(--dark-color);
+            border: none;
+            padding: 0.75rem 2rem;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-secondary:hover {
+            background: #d1d5db;
+            color: var(--dark-color);
+        }
+
+        .user-info {
+            background: var(--light-bg);
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+        }
+
+        .loading {
+            display: none;
+        }
+
+        .loading.show {
+            display: inline-block;
+        }
+    </style>
+</head>
+<body>
+    <div class="privacy-container">
+        <div class="privacy-card">
+            <div class="privacy-header">
+                <h1><i class="fas fa-shield-alt me-3"></i>Data Privacy Agreement</h1>
+                <p>Personal Information Protection & Compliance</p>
+            </div>
+
+            <div class="privacy-content">
+                <div class="user-info">
+                    <strong>User:</strong> {{ user_info.name or user_info.email }}
+                    <br><strong>Email:</strong> {{ user_info.email }}
+                </div>
+
+                <div class="important-box">
+                    <h5><i class="fas fa-exclamation-triangle me-2"></i>Important Notice</h5>
+                    <p><strong>This system processes sensitive personal information including resumes, personal data sheets, and employment records. Your acknowledgment of this privacy agreement is required before proceeding.</strong></p>
+                </div>
+
+                <div class="privacy-section">
+                    <h3><i class="fas fa-database me-2"></i>Data We Collect</h3>
+                    <p>This Resume Screening AI system collects and processes the following types of personal information:</p>
+                    <ul>
+                        <li><strong>Personal Data Sheets (PDS):</strong> Comprehensive personal information including family background, government IDs, civil service eligibility</li>
+                        <li><strong>User Account Data:</strong> Email addresses, login credentials, and system usage information</li>
+                        <li><strong>System Logs:</strong> Access logs, processing timestamps, and technical metadata</li>
+                    </ul>
+                </div>
+
+                <div class="privacy-section">
+                    <h3><i class="fas fa-cogs me-2"></i>How We Use Your Data</h3>
+                    <p>Your personal information is used exclusively for:</p>
+                    <ul>
+                        <li>PDS analysis and scoring against job requirements</li>
+                        <li>Candidate ranking and recommendation generation</li>
+                        <li>System analytics and performance monitoring</li>
+                        <li>User authentication and access control</li>
+                        <li>Compliance with employment screening regulations</li>
+                    </ul>
+                </div>
+
+                <div class="privacy-section">
+                    <h3><i class="fas fa-lock me-2"></i>Data Protection Measures</h3>
+                    <p>We implement comprehensive security measures to protect your information:</p>
+                    <ul>
+                        <li><strong>Encryption:</strong> All data is encrypted in transit and at rest</li>
+                        <li><strong>Access Controls:</strong> Role-based access with strong authentication</li>
+                        <li><strong>Data Minimization:</strong> We only collect data necessary for system functionality</li>
+                        <li><strong>Secure Storage:</strong> PostgreSQL database with backup and recovery protocols</li>
+                        <li><strong>Regular Audits:</strong> Periodic security assessments and vulnerability testing</li>
+                    </ul>
+                </div>
+
+                <div class="privacy-section">
+                    <h3><i class="fas fa-users me-2"></i>Data Sharing</h3>
+                    <div class="info-box">
+                        <p><strong>We do not sell, rent, or share your personal information with third parties.</strong> Data access is restricted to:</p>
+                        <ul>
+                            <li>Authorized HR personnel within your organization</li>
+                            <li>System administrators for technical support</li>
+                            <li>Legal authorities when required by law</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="privacy-section">
+                    <h3><i class="fas fa-clock me-2"></i>Data Retention</h3>
+                    <p>We retain your personal information for the following periods:</p>
+                    <ul>
+                        <li><strong>PDS Information:</strong> As required by Philippine employment law</li>
+                        <li><strong>System Logs:</strong> 1 year for security and audit purposes</li>
+                        <li><strong>User Accounts:</strong> Until account deletion is requested</li>
+                    </ul>
+                </div>
+
+                <div class="privacy-section">
+                    <h3><i class="fas fa-balance-scale me-2"></i>Your Rights</h3>
+                    <p>Under the Data Privacy Act of 2012 (RA 10173) and other applicable laws, you have the right to:</p>
+                    <ul>
+                        <li><strong>Access:</strong> Request copies of your personal information</li>
+                        <li><strong>Correction:</strong> Update or correct inaccurate information</li>
+                        <li><strong>Deletion:</strong> Request removal of your data (subject to legal requirements)</li>
+                        <li><strong>Portability:</strong> Obtain your data in a machine-readable format</li>
+                        <li><strong>Objection:</strong> Object to certain types of data processing</li>
+                        <li><strong>Notification:</strong> Be informed of any data breaches affecting your information</li>
+                    </ul>
+                </div>
+
+                <div class="privacy-section">
+                    <h3><i class="fas fa-phone me-2"></i>Contact Information</h3>
+                    <p>For privacy-related inquiries, data access requests, or concerns, contact:</p>
+                    <div class="info-box">
+                        <p><strong>Data Protection Officer</strong><br>
+                        Email: dpo@company.com<br>
+                        Phone: [Contact Number]<br>
+                        Address: [Company Address]</p>
+                    </div>
+                </div>
+
+                <div class="highlight-box">
+                    <h5><i class="fas fa-info-circle me-2"></i>Compliance Statement</h5>
+                    <p>This system complies with the Data Privacy Act of 2012 (Republic Act No. 10173), its Implementing Rules and Regulations, and other applicable privacy laws in the Philippines.</p>
+                </div>
+            </div>
+
+            <div class="privacy-footer">
+                <form id="privacyForm">
+                    <div class="agreement-checkbox">
+                        <input type="checkbox" id="privacyAgreement" name="agreed" required>
+                        <label for="privacyAgreement">
+                            I have read, understood, and agree to the Data Privacy Agreement. I consent to the collection, processing, and storage of my personal information as described above for the purpose of resume screening and employment evaluation.
+                        </label>
+                    </div>
+
+                    <div class="d-flex gap-3 justify-content-end">
+                        <button type="button" class="btn btn-secondary" onclick="window.location.href='/logout'">
+                            <i class="fas fa-times me-2"></i>Decline & Logout
+                        </button>
+                        <button type="submit" class="btn btn-primary">
+                            <span class="loading spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                            <i class="fas fa-check me-2"></i>Accept & Continue
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.getElementById('privacyForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const checkbox = document.getElementById('privacyAgreement');
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            const loading = submitBtn.querySelector('.loading');
+            
+            if (!checkbox.checked) {
+                alert('You must agree to the privacy policy to continue.');
+                return;
+            }
+            
+            // Show loading state
+            loading.classList.add('show');
+            submitBtn.disabled = true;
+            
+            try {
+                const response = await fetch('/privacy-agreement', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        agreed: true
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    window.location.href = data.redirect || '/dashboard';
+                } else {
+                    alert(data.message || 'An error occurred. Please try again.');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('An error occurred. Please try again.');
+            } finally {
+                // Hide loading state
+                loading.classList.remove('show');
+                submitBtn.disabled = false;
+            }
+        });
+    </script>
+</body>
+</html>

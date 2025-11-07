@@ -1,0 +1,134 @@
+{
+  "success": true,
+  "analytics": {
+    "summary": {
+      "total_candidates": 6,
+      "completed_assessments": 1,
+      "pending_assessments": 5,
+      "avg_overall_score": 15.2,
+      "processing_rate": 16.7,
+      "last_updated": "2025-11-05T10:30:00.000000"
+    },
+    "real_score_distribution": {
+      "Excellent (90+)": 0,
+      "Very Good (80-89)": 0,
+      "Good (70-79)": 0,
+      "Fair (60-69)": 0,
+      "Needs Improvement (<60)": 6,
+      "Not Assessed": 0
+    },
+    "criteria_performance": {
+      "education": {
+        "weight": 40,
+        "avg_score": 18.2,
+        "performance_trend": "stable",
+        "candidates_excelling": 4,
+        "improvement_areas": [
+          "Degree verification",
+          "Field alignment",
+          "Academic credentials"
+        ]
+      },
+      "experience": {
+        "weight": 20,
+        "avg_score": 13.7,
+        "performance_trend": "stable",
+        "candidates_excelling": 5,
+        "improvement_areas": [
+          "Work history depth",
+          "Relevant experience",
+          "Leadership roles"
+        ]
+      },
+      "potential": {
+        "weight": 15,
+        "avg_score": 16.7,
+        "performance_trend": "improving",
+        "candidates_excelling": 5,
+        "improvement_areas": [
+          "Growth indicators",
+          "Innovation capacity",
+          "Adaptability"
+        ]
+      },
+      "training": {
+        "weight": 10,
+        "avg_score": 12.1,
+        "performance_trend": "needs_attention",
+        "candidates_excelling": 5,
+        "improvement_areas": [
+          "Professional certifications",
+          "Continuing education",
+          "Skills training"
+        ]
+      },
+      "eligibility": {
+        "weight": 10,
+        "avg_score": 19.7,
+        "performance_trend": "stable",
+        "candidates_excelling": 5,
+        "improvement_areas": [
+          "License updates",
+          "Civil service eligibility",
+          "Documentation"
+        ]
+      },
+      "accomplishments": {
+        "weight": 5,
+        "avg_score": 10.6,
+        "performance_trend": "improving",
+        "candidates_excelling": 6,
+        "improvement_areas": [
+          "Research publications",
+          "Awards documentation",
+          "Recognition records"
+        ]
+      }
+    },
+    "category_performance": [
+      {
+        "position": "Information Technology",
+        "candidates": 5,
+        "avg_score": 16.8,
+        "shortlisted": 1,
+        "high_performers": 0,
+        "success_rate": 0.0
+      },
+      {
+        "position": "General",
+        "candidates": 1,
+        "avg_score": 7.0,
+        "shortlisted": 0,
+        "high_performers": 0,
+        "success_rate": 0.0
+      }
+    ],
+    "insights": [
+      {
+        "type": "strength",
+        "title": "Strong IT Talent Pool",
+        "message": "Information Technology leads with 5 candidates (83.3%)",
+        "impact": "high"
+      },
+      {
+        "type": "opportunity",
+        "title": "Score Improvement Potential",
+        "message": "6 candidates below 60% - focus on training and development",
+        "impact": "high"
+      },
+      {
+        "type": "improvement",
+        "title": "Processing Status",
+        "message": "5 candidates awaiting assessment (83.3% pending)",
+        "impact": "medium"
+      }
+    ],
+    "recommendations": [
+      "Accelerate candidate assessment processing to reduce backlog",
+      "Focus on Information Technology candidates for priority positions",
+      "Implement training programs to improve candidate scores",
+      "Establish regular assessment quality reviews"
+    ]
+  },
+  "last_updated": "2025-11-05T10:30:00.000000"
+}

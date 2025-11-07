@@ -49,7 +49,7 @@ const ValidationUtils = {
         const errors = [];
         
         if (!this.isValidFileType(file)) {
-            errors.push(`Invalid file type: ${file.name}. Only PDF, DOCX, and TXT files are allowed.`);
+            errors.push(`Invalid file type: ${file.name}. Only PDF, DOCX, TXT, and Excel files (.xlsx, .xls) are allowed.`);
         }
         
         if (!this.isValidFileSize(file)) {
